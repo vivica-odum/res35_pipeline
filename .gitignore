@@ -1,0 +1,10 @@
+# Python's own temporary files
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Parse cache: rebuilt automatically, no need to store it
+data/parsed/
+
+# Excel's lock file while a workbook is open
+output/~$*

@@ -1,0 +1,56 @@
+# Runs the Res 35 pipeline on GitHub's servers once a week and saves the
+# results back into this repository.
+#
+# When: every Wednesday at 12:00 UTC (8:00 Eastern in summer, 7:00 in winter).
+#   The BR IFIC is published every other Tuesday (3000, 3005, 3008 and 3069
+#   are all dated Tuesdays), so Wednesday picks up a new BR IFIC the day after
+#   it comes out, and the in-between Wednesday catches SNL changes such as new
+#   "As Received" statuses.
+#
+# To run it by hand: GitHub > Actions tab > "Weekly Res 35 update" > Run workflow.
+# If a run fails, GitHub emails the repository owner and shows a red X on the Actions tab.
+
+name: Weekly Res 35 update
+
+on:
+  schedule:
+    - cron: "0 12 * * 3"     # minute hour day-of-month month day-of-week (3 = Wednesday)
+  workflow_dispatch:          # adds the "Run workflow" button
+
+permissions:
+  contents: write             # lets the job save its results back to the repo
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Get the code and data
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install libraries
+        run: pip install -r requirements.txt
+
+      - name: Check the code still reads the test PDFs correctly
+        run: python tests/check_examples.py
+
+      - name: Run the pipeline
+        run: python run_pipeline.py
+
+      - name: Save results to the repository
+        run: |
+          git config user.name "res35-bot"
+          git config user.email "res35-bot@users.noreply.github.com"
+          git add data output
+          if git diff --cached --quiet; then
+            echo "Nothing changed this week."
+          else
+            git commit -m "Weekly Res 35 update $(date -u +%F)"
+            git push
+          fi

@@ -1,0 +1,249 @@
+# ITU symbols for countries and geographical areas, as used in ITU-R publications (ADM column, launch country).
+# Source: https://en.wikipedia.org/wiki/List_of_ITU_letter_codes (compiled from ITU-R lists), retrieved 2026-10-18.
+# Add a row here if the pipeline warns about an unknown code.
+code,country,official_name,kind
+AFG,Afghanistan,Afghanistan,member state
+AFS,South Africa,South Africa (Republic of),member state
+AGL,Angola,Angola (Republic of),member state
+ALB,Albania,Albania (Republic of),member state
+ALG,Algeria,Algeria (People's Democratic Republic of),member state
+AND,Andorra,Andorra (Principality of),member state
+ARG,Argentina,Argentine Republic,member state
+ARM,Armenia,Armenia (Republic of),member state
+ARS,Saudi Arabia,Saudi Arabia (Kingdom of),member state
+ATG,Antigua and Barbuda,Antigua and Barbuda,member state
+AUS,Australia,Australia,member state
+AUT,Austria,Austria,member state
+AZE,Azerbaijan,Azerbaijan (Republic of),member state
+B,Brazil,Brazil (Federative Republic of),member state
+BAH,Bahamas,Bahamas (Commonwealth of the),member state
+BDI,Burundi,Burundi (Republic of),member state
+BEL,Belgium,Belgium,member state
+BEN,Benin,Benin (Republic of),member state
+BFA,Burkina Faso,Burkina Faso,member state
+BGD,Bangladesh,Bangladesh (People's Republic of),member state
+BHR,Bahrain,Bahrain (Kingdom of),member state
+BIH,Bosnia and Herzegovina,Bosnia and Herzegovina,member state
+BLR,Belarus,Belarus (Republic of),member state
+BLZ,Belize,Belize,member state
+BOL,Bolivia,Bolivia (Plurinational State of),member state
+BOT,Botswana,Botswana (Republic of),member state
+BRB,Barbados,Barbados,member state
+BRM,Myanmar,Myanmar (Union of),member state
+BRU,Brunei,Brunei Darussalam,member state
+BTN,Bhutan,Bhutan (Kingdom of),member state
+BUL,Bulgaria,Bulgaria (Republic of),member state
+CAF,Central African Republic,Central African Republic,member state
+CAN,Canada,Canada,member state
+CBG,Cambodia,Cambodia (Kingdom of),member state
+CHL,Chile,Chile,member state
+CHN,China,China (People's Republic of),member state
+CLM,Colombia,Colombia (Republic of),member state
+CLN,Sri Lanka,Sri Lanka (Democratic Socialist Republic of),member state
+CME,Cameroon,Cameroon (Republic of),member state
+COD,Democratic Republic of the Congo,Democratic Republic of the Congo,member state
+COG,Republic of the Congo,Congo (Republic of the),member state
+COM,Comoros,Comoros (Union of the),member state
+CPV,Cabo Verde,Cabo Verde (Republic of),member state
+CTI,Côte d'Ivoire,Côte d'Ivoire (Republic of),member state
+CTR,Costa Rica,Costa Rica,member state
+CUB,Cuba,Cuba,member state
+CVA,Vatican City,Vatican City,member state
+CYP,Cyprus,Cyprus (Republic of),member state
+CZE,Czech Republic,Czech Republic,member state
+D,Germany,Germany (Federal Republic of),member state
+DJI,Djibouti,Djibouti (Republic of),member state
+DMA,Dominica,Dominica (Commonwealth of),member state
+DNK,Denmark,Denmark,member state
+DOM,Dominican Republic,Dominican Republic,member state
+E,Spain,Spain,member state
+EGY,Egypt,Egypt (Arab Republic of),member state
+EQA,Ecuador,Ecuador,member state
+ERI,Eritrea,Eritrea,member state
+EST,Estonia,Estonia (Republic of),member state
+ETH,Ethiopia,Ethiopia (Federal Democratic Republic of),member state
+F,France,France,member state
+FIN,Finland,Finland,member state
+FJI,Fiji,Fiji (Republic of),member state
+FSM,Micronesia,Micronesia (Federated States of),member state
+G,United Kingdom,United Kingdom of Great Britain and Northern Ireland,member state
+GAB,Gabon,Gabon,member state
+GEO,Georgia,Georgia,member state
+GHA,Ghana,Ghana,member state
+GMB,Gambia,Gambia (Republic of the),member state
+GNB,Guinea-Bissau,Guinea-Bissau (Republic of),member state
+GNE,Equatorial Guinea,Equatorial Guinea (Republic of),member state
+GRC,Greece,Greece,member state
+GRD,Grenada,Grenada,member state
+GTM,Guatemala,Guatemala (Republic of),member state
+GUI,Guinea,Guinea (Republic of),member state
+GUY,Guyana,Guyana,member state
+HND,Honduras,Honduras (Republic of),member state
+HNG,Hungary,Hungary,member state
+HOL,Netherlands,Netherlands (Kingdom of the),member state
+HRV,Croatia,Croatia (Republic of),member state
+HTI,Haiti,Haiti (Republic of),member state
+I,Italy,Italy,member state
+IND,India,India (Republic of),member state
+INS,Indonesia,Indonesia (Republic of),member state
+IRL,Ireland,Ireland,member state
+IRN,Iran,Iran (Islamic Republic of),member state
+IRQ,Iraq,Iraq (Republic of),member state
+ISL,Iceland,Iceland,member state
+ISR,Israel,Israel (State of),member state
+J,Japan,Japan,member state
+JMC,Jamaica,Jamaica,member state
+JOR,Jordan,Jordan (Hashemite Kingdom of),member state
+KAZ,Kazakhstan,Kazakhstan (Republic of),member state
+KEN,Kenya,Kenya (Republic of),member state
+KGZ,Kyrgyzstan,Kyrgyz Republic,member state
+KIR,Kiribati,Kiribati (Republic of),member state
+KNA,Saint Kitts and Nevis,Saint Kitts and Nevis (Federation of),member state
+KOR,South Korea,Korea (Republic of),member state
+KRE,North Korea,Democratic People's Republic of Korea,member state
+KWT,Kuwait,Kuwait (State of),member state
+LAO,Laos,Lao People's Democratic Republic,member state
+LBN,Lebanon,Lebanon,member state
+LBR,Liberia,Liberia (Republic of),member state
+LBY,Libya,Libya (State of),member state
+LCA,Saint Lucia,Saint Lucia,member state
+LIE,Liechtenstein,Liechtenstein (Principality of),member state
+LSO,Lesotho,Lesotho (Kingdom of),member state
+LTU,Lithuania,Lithuania (Republic of),member state
+LUX,Luxembourg,Luxembourg,member state
+LVA,Latvia,Latvia (Republic of),member state
+MAU,Mauritius,Mauritius (Republic of),member state
+MCO,Monaco,Monaco (Principality of),member state
+MDA,Moldova,Moldova (Republic of),member state
+MDG,Madagascar,Madagascar (Republic of),member state
+MEX,Mexico,Mexico,member state
+MHL,Marshall Islands,Marshall Islands (Republic of the),member state
+MKD,North Macedonia,North Macedonia (Republic of),member state
+MLA,Malaysia,Malaysia,member state
+MLD,Maldives,Maldives (Republic of),member state
+MLI,Mali,Mali (Republic of),member state
+MLT,Malta,Malta,member state
+MNE,Montenegro,Montenegro,member state
+MNG,Mongolia,Mongolia,member state
+MOZ,Mozambique,Mozambique (Republic of),member state
+MRC,Morocco,Morocco (Kingdom of),member state
+MTN,Mauritania,Mauritania (Islamic Republic of),member state
+MWI,Malawi,Malawi,member state
+NCG,Nicaragua,Nicaragua,member state
+NGR,Niger,Niger (Republic of the),member state
+NIG,Nigeria,Nigeria (Federal Republic of),member state
+NMB,Namibia,Namibia (Republic of),member state
+NOR,Norway,Norway,member state
+NPL,Nepal,Nepal (Federal Democratic Republic of),member state
+NRU,Nauru,Nauru (Republic of),member state
+NZL,New Zealand,New Zealand,member state
+OMA,Oman,Oman (Sultanate of),member state
+PAK,Pakistan,Pakistan (Islamic Republic of),member state
+PHL,Philippines,Philippines (Republic of the),member state
+PLW,Palau,Palau (Republic of),member state
+PNG,Papua New Guinea,Papua New Guinea,member state
+PNR,Panama,Panama (Republic of),member state
+POL,Poland,Poland (Republic of),member state
+POR,Portugal,Portugal,member state
+PRG,Paraguay,Paraguay (Republic of),member state
+PRU,Peru,Peru,member state
+QAT,Qatar,Qatar (State of),member state
+ROU,Romania,Romania,member state
+RRW,Rwanda,Rwanda (Republic of),member state
+RUS,Russia,Russian Federation,member state
+S,Sweden,Sweden,member state
+SDN,Sudan,Sudan (Republic of the),member state
+SEN,Senegal,Senegal (Republic of),member state
+SEY,Seychelles,Seychelles (Republic of),member state
+SLM,Solomon Islands,Solomon Islands,member state
+SLV,El Salvador,El Salvador (Republic of),member state
+SMO,Samoa,Samoa (Independent State of),member state
+SMR,San Marino,San Marino (Republic of),member state
+SNG,Singapore,Singapore (Republic of),member state
+SOM,Somalia,Somalia (Federal Republic of),member state
+SRB,Serbia,Serbia (Republic of),member state
+SRL,Sierra Leone,Sierra Leone,member state
+SSD,South Sudan,South Sudan (Republic of),member state
+STP,Sao Tome and Principe,Sao Tome and Principe (Democratic Republic of),member state
+SUI,Switzerland,Switzerland (Confederation of),member state
+SUR,Suriname,Suriname (Republic of),member state
+SVK,Slovakia,Slovak Republic,member state
+SVN,Slovenia,Slovenia (Republic of),member state
+SWZ,Eswatini,Eswatini (Kingdom of),member state
+SYR,Syria,Syrian Arab Republic,member state
+TCD,Chad,Chad (Republic of),member state
+TGO,Togo,Togolese Republic,member state
+THA,Thailand,Thailand,member state
+TJK,Tajikistan,Tajikistan (Republic of),member state
+TKM,Turkmenistan,Turkmenistan,member state
+TLS,Timor-Leste,Timor-Leste (Democratic Republic of),member state
+TON,Tonga,Tonga (Kingdom of),member state
+TRD,Trinidad and Tobago,Trinidad and Tobago,member state
+TUN,Tunisia,Tunisia,member state
+TUR,Türkiye,Türkiye (Republic of),member state
+TUV,Tuvalu,Tuvalu,member state
+TZA,Tanzania,Tanzania (United Republic of),member state
+UAE,United Arab Emirates,United Arab Emirates,member state
+UGA,Uganda,Uganda (Republic of),member state
+UKR,Ukraine,Ukraine,member state
+URG,Uruguay,Uruguay (Eastern Republic of),member state
+USA,United States,United States of America,member state
+UZB,Uzbekistan,Uzbekistan (Republic of),member state
+VCT,Saint Vincent and the Grenadines,Saint Vincent and the Grenadines,member state
+VEN,Venezuela,Venezuela (Bolivarian Republic of),member state
+VTN,Vietnam,Vietnam (Socialist Republic of),member state
+VUT,Vanuatu,Vanuatu (Republic of),member state
+YEM,Yemen,Yemen (Republic of),member state
+ZMB,Zambia,Zambia (Republic of),member state
+ZWE,Zimbabwe,Zimbabwe (Republic of),member state
+ABW,Aruba,Aruba,geographical area
+AIA,Anguilla,Anguilla,geographical area
+ALS,Alaska,Alaska (State of),geographical area
+ASC,Ascension Island,Ascension Island,geographical area
+ATA,Antarctica,Antarctica,geographical area
+AZR,Azores,Azores,geographical area
+BER,Bermuda,Bermuda,geographical area
+BLM,Saint Barthélemy,Saint Barthélemy,geographical area
+BVT,Bouvet Island,Bouvet Island,geographical area
+CHR,Christmas Island,Christmas Island (Indian Ocean),geographical area
+CKH,Cook Islands,Cook Islands,geographical area
+CNR,Canary Islands,Canary Islands,geographical area
+CPT,Clipperton Island,Clipperton Island,geographical area
+CYM,Cayman Islands,Cayman Islands,geographical area
+DGA,Diego Garcia,Diego Garcia,geographical area
+FLK,Falkland Islands,Falkland Islands (Malvinas),geographical area
+FRO,Faroe Islands,Faroe Islands,geographical area
+GIB,Gibraltar,Gibraltar,geographical area
+GRL,Greenland,Greenland,geographical area
+GUF,French Guiana,French Guiana,geographical area
+GUM,Guam,Guam,geographical area
+HKG,Hong Kong,Hong Kong (Special Administrative Region of China),geographical area
+HWA,Hawaii,Hawaii (State of),geographical area
+ICO,Cocos (Keeling) Islands,Cocos (Keeling) Islands,geographical area
+KER,Kerguelen Islands,Kerguelen Islands,geographical area
+MAC,Macau,Macau (Special Administrative Region of China),geographical area
+MDR,Madeira,Madeira,geographical area
+MDW,Midway Islands,Midway Islands,geographical area
+MRA,Northern Mariana Islands,Northern Mariana Islands,geographical area
+MRT,Martinique,Martinique,geographical area
+MSR,Montserrat,Montserrat,geographical area
+MYT,Mayotte,Mayotte,geographical area
+NCL,New Caledonia,New Caledonia,geographical area
+NFK,Norfolk Island,Norfolk Island,geographical area
+NIU,Niue,Niue,geographical area
+OCE,French Polynesia,French Polynesia,geographical area
+PAQ,Easter Island,Easter Island,geographical area
+PTC,Pitcairn Island,Pitcairn Island,geographical area
+PTR,Puerto Rico,Puerto Rico,geographical area
+REU,Reunion,Reunion,geographical area
+SHN,Saint Helena,Saint Helena,geographical area
+SMA,American Samoa,American Samoa,geographical area
+SPM,Saint Pierre and Miquelon,Saint Pierre and Miquelon,geographical area
+SXM,Sint Maarten,Sint Maarten,geographical area
+TCA,Turks and Caicos Islands,Turks and Caicos Islands,geographical area
+TKL,Tokelau,Tokelau,geographical area
+TRC,Tristan da Cunha,Tristan da Cunha,geographical area
+VIR,United States Virgin Islands,United States Virgin Islands,geographical area
+VRG,British Virgin Islands,British Virgin Islands,geographical area
+WAK,Wake Island,Wake Island,geographical area
+WAL,Wallis and Futuna Islands,Wallis and Futuna Islands,geographical area
