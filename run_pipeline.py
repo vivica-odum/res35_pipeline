@@ -285,7 +285,17 @@ README_ROWS = [
                           "are not ISO codes: D = Germany, G = United Kingdom, F = France, HOL = Netherlands, "
                           "E = Spain. Translations come from itu_country_codes.csv."),
     ("igso", "Intergovernmental satellite organization that filed (field ntwk_org), usually empty."),
-    ("resolves_19", "SNL 'Resolves 19' column (field POST). Meaning to be confirmed."),
+    ("resolves_19", "SNL 'Resolves 19' column (field POST): post-milestone deployment reports under "
+                    "resolves 19 of Resolution 35. The first are due 1 Feb 2032, so it is empty for now."),
+    ("res35_network_id (pdfs)", "First 'Identification number' on page 1 of the PDF (e.g. 121935017). "
+                                "Stays the same for a network across its milestones. Identifies the "
+                                "Res 35 record, not the filing. Blank on the oldest PDFs, which show one number."),
+    ("res35_submission_id (pdfs)", "Second 'Identification number' on page 1 (e.g. 123535017). New for every "
+                                   "PDF; digits 2-3 are the year the Bureau received the submission."),
+    ("br6a_br6b_id_no (planes, groups)", "The tables' own 'BR6a/BR6b Id no.' column (newer PDFs: 'BR6a Id. no.'), e.g. 121500130. A different number "
+                              "from the page-1 IDs: it points to the filing whose orbits are listed, and "
+                              "newer PDFs' itu_sat_id values start with it. Likely the ITU notice ID "
+                              "(to be confirmed). Can change between milestones."),
     ("min_to_meet (bands)", "Bureau's minimum deployed stations for the milestone; 10% / 50% / 100% "
                             "of notified, rounded DOWN (STEAM-1 M1: 4408 -> 440)."),
     ("bureau_notes", "English text of any note the Bureau printed in a PDF. Two kinds so far: a Radio "

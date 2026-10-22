@@ -37,7 +37,9 @@ h = r["header"]
 check("STEAM-1 name/adm", (h["network_name"], h["adm"]), ("STEAM-1", "NOR"))
 check("STEAM-1 BR IFIC", (h["brific_number"], h["brific_date"]), (3008, date(2023, 10, 31)))
 check("STEAM-1 received", h["received_date"], date(2023, 7, 26))
-check("STEAM-1 ids", (h["id_br6a"], h["id_br6b"]), ("121935017", "123535017"))
+check("STEAM-1 page-1 ids", (h["res35_network_id"], h["res35_submission_id"]), ("121935017", "123535017"))
+check("STEAM-1 table id (BR6a/BR6b Id no.) is a different number",
+      r["planes"]["br6a_br6b_id_no"].unique().tolist(), ["121500130"])
 check("STEAM-1 totals", (h["total_notified"], h["total_deployed"]), (4408, 442))
 check("STEAM-1 satellites", len(r["satellites"]), 442)
 check("STEAM-1 min to meet M1 (rounded down)", r["bands"]["min_to_meet"].tolist(), [440, 440])
@@ -80,7 +82,7 @@ r = maybe("RES350003")          # oldest layout: % deployed + Y/N, one ID number
 if r:
     check("O3B-A M0 bands (oldest layout)", r["bands"][["pct_deployed", "met", "milestone"]].iloc[0].tolist(),
           [4.17, "YES", "M0"])
-    check("O3B-A M0 single ID number", (r["header"]["id_br6a"], r["header"]["id_br6b"]), (None, "121535001"))
+    check("O3B-A M0 single ID number", (r["header"]["res35_network_id"], r["header"]["res35_submission_id"]), (None, "121535001"))
     check("O3B-A M0 problems", r["problems"], [])
 r = maybe("RES350001")          # vehicle cell wraps onto three lines
 if r:

@@ -96,16 +96,19 @@ def parse_header(pages):
     m = re.search(r"(?<![A-Za-z0-9])M([0-3])(?![A-Za-z0-9:])", first)
     header["milestone"] = f"M{m.group(1)}" if m else None
 
-    # Identification numbers: usually two 9-digit numbers "BR6a / BR6b".
-    # BR6a stays the same per network; BR6b changes with each submission.
-    # The oldest M0 PDFs (2021-22) show only one number, from the BR6b series (1215...).
+    # Page-1 "IDENTIFICATION NUMBER": usually two 9-digit numbers "121935017 / 123535017".
+    # These identify the Res 35 submission, NOT the filing: they are unrelated to the
+    # "BR6a/BR6b Id no." column inside the tables (stored as br6a_br6b_id_no in planes/groups).
+    #   res35_network_id    (middle digits 935) stays the same for a network across milestones
+    #   res35_submission_id (middle digits 535) is new for every PDF; digits 2-3 = year received
+    # The oldest M0 PDFs (2021-22) show only one number, from the submission series (1215...).
     m = re.search(r"\b(\d{9})\s*/\s*(\d{9})\b", first)
     if m:
-        header["id_br6a"], header["id_br6b"] = m.group(1), m.group(2)
+        header["res35_network_id"], header["res35_submission_id"] = m.group(1), m.group(2)
     else:
         single = re.findall(r"(?<!\d)(\d{9})(?!\d)", first)
-        header["id_br6a"] = None
-        header["id_br6b"] = single[0] if len(single) == 1 else None
+        header["res35_network_id"] = None
+        header["res35_submission_id"] = single[0] if len(single) == 1 else None
 
     # Date the Bureau received the information
     m = re.search(rf"BUREAU ON.*?({DATE})", first, flags=re.S)
@@ -230,7 +233,7 @@ SECTION_TITLES = {
 ROW_PATTERNS = {
     # M 121500130 UC263Y R 121766085 14000 - 14500 27.12.2019 M1 27.06.2023 Y 27.06.2026
     "groups": re.compile(
-        rf"^\s*(?P<action_code>[A-Z])\s+(?P<br6a>\d{{9}})\s+(?P<beam>\S+)\s+"
+        rf"^\s*(?P<action_code>[A-Z])\s+(?P<br6a_br6b_id_no>\d{{9}})\s+(?P<beam>\S+)\s+"
         rf"(?P<emi_rcp>[ER])\s+(?P<group_id>\d+)\s+"
         rf"(?P<freq_min_mhz>{NUM})\s*-\s*(?P<freq_max_mhz>{NUM})\s+"
         rf"(?P<date_brought_into_use>{DATE})\s+(?P<current_milestone>M\d)\s+"
@@ -239,7 +242,7 @@ ROW_PATTERNS = {
     ),
     # 125500135  1  87.9  1200  1200  0  49  7
     "planes": re.compile(
-        rf"^\s*(?P<br6a>\d{{9}})\s+(?P<plane_id>\d+)\s+(?P<inclination_deg>{NUM})\s+"
+        rf"^\s*(?P<br6a_br6b_id_no>\d{{9}})\s+(?P<plane_id>\d+)\s+(?P<inclination_deg>{NUM})\s+"
         rf"(?P<apogee_km>{NUM})\s+(?P<perigee_km>{NUM})\s+(?P<arg_perigee_deg>{NUM})\s+"
         rf"(?P<stations_notified>\d+)\s+(?P<stations_deployed>\d+)\s*$"
     ),
@@ -272,7 +275,7 @@ ROW_PATTERNS = {
 
 DATE_COLUMNS = {"date_brought_into_use", "milestone_expiry",
                 "next_milestone_expiry", "launch_date"}
-TEXT_COLUMNS = {"action_code", "br6a", "beam", "emi_rcp", "group_id",
+TEXT_COLUMNS = {"action_code", "br6a_br6b_id_no", "beam", "emi_rcp", "group_id",
                 "current_milestone", "criteria_met", "milestone", "met", "met_yn", "note",
                 "country", "longitude", "latitude", "satellite_name",
                 "itu_sat_id", "band_ids", "middle"}
@@ -389,7 +392,7 @@ def run_checks(header, tables):
                 "milestone", "received_date"]:
         if header.get(key) in (None, ""):
             problems.append(f"header field '{key}' not found")
-    if not header.get("id_br6a") and not header.get("id_br6b"):
+    if not header.get("res35_network_id") and not header.get("res35_submission_id"):
         problems.append("no identification number found")
 
     if header["total_notified"] is not None and len(planes):
@@ -467,7 +470,7 @@ if __name__ == "__main__":
         h = result["header"]
         print(f"\n=== {path}")
         for key in ["network_name", "adm", "special_section", "milestone", "brific_number",
-                    "brific_date", "received_date", "id_br6a", "id_br6b",
+                    "brific_date", "received_date", "res35_network_id", "res35_submission_id",
                     "total_notified", "total_deployed", "layout"]:
             print(f"  {key:18} {h[key]}")
         for name in SECTION_TITLES:
