@@ -93,13 +93,3 @@ and the in-between Wednesday catches SNL changes such as new "As Received" statu
   the numbering changed between the older and newer PDF layouts.
 - Every PDF's numbers are checked: plane totals must add up to the PDF's stated
   totals, and the satellite count must equal the deployed total.
-
-## Not yet confirmed
-
-- The live download of `bundle.js` and the PDFs has not been run yet; the first
-  run on your computer is the test. Also check that the ITU site accepts downloads
-  from GitHub's servers (the first scheduled run will show it).
-- The revision suffix in PDF links (`M1`) was confirmed on STEAM-1 only.
-- Launch rows are split into provider / vehicle / facility on gaps of 2+ spaces.
-  Rows where that fails are kept and flagged in `parse_warning`.
-- Meaning of the bundle fields `POST` (shown as "Resolves 19"), `type` and `new_sat_name`.
