@@ -1,0 +1,598 @@
+<title>Res 35 Network Tables</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a filing-register workspace. Summary strip, then tabbed tables in one scroll pane
+   with a sticky header and a sticky first column; hover cards carry definitions and links. */
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --sunk: #eaeef3;
+  --ink: #15202c;
+  --muted: #5a6878;
+  --line: #d9dfe7;
+  --accent: #0f5d8f;
+  --accent-soft: #e2eef7;
+  --good: #1d7a4c; --good-bg: #e3f3ea;
+  --warn: #9a6100; --warn-bg: #fbf0d9;
+  --bad: #b0352a; --bad-bg: #f9e4e1;
+  --info: #2c62a8; --info-bg: #e3ecf8;
+  --plus: #b0352a; --minus: #2c62a8;
+  --shadow: 0 10px 30px rgba(20, 35, 55, .16), 0 2px 6px rgba(20, 35, 55, .08);
+  --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d131a; --surface: #141c25; --sunk: #1a2430; --ink: #e3e9ef; --muted: #93a1b1;
+    --line: #273342; --accent: #6db2e3; --accent-soft: #16324a;
+    --good: #5cc48f; --good-bg: #133326; --warn: #e3ab4a; --warn-bg: #3a2c10;
+    --bad: #ef8074; --bad-bg: #3d1c19; --info: #84b5ec; --info-bg: #172b45;
+    --plus: #ef8074; --minus: #84b5ec;
+    --shadow: 0 10px 30px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d131a; --surface: #141c25; --sunk: #1a2430; --ink: #e3e9ef; --muted: #93a1b1;
+  --line: #273342; --accent: #6db2e3; --accent-soft: #16324a;
+  --good: #5cc48f; --good-bg: #133326; --warn: #e3ab4a; --warn-bg: #3a2c10;
+  --bad: #ef8074; --bad-bg: #3d1c19; --info: #84b5ec; --info-bg: #172b45;
+  --plus: #ef8074; --minus: #84b5ec;
+  --shadow: 0 10px 30px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .35);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font: 14px/1.5 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+}
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+.wrap { max-width: 1500px; margin: 0 auto; display: grid; gap: 18px; }
+
+/* Masthead */
+.mast { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+.mast h1 {
+  font: 800 clamp(26px, 4vw, 38px)/1 var(--f-display); font-stretch: 78%;
+  letter-spacing: -.01em; margin: 0; text-wrap: balance;
+}
+.mast h1 span { color: var(--accent); }
+.mast p { margin: 6px 0 0; color: var(--muted); max-width: 70ch; }
+.asof { font: 500 12px/1.4 var(--f-mono); color: var(--muted); text-align: right; }
+.asof b { color: var(--ink); font-weight: 500; }
+
+/* Summary strip */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px;
+  background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.stat { background: var(--surface); padding: 12px 16px; display: grid; gap: 2px; }
+.stat .n { font: 700 24px/1.1 var(--f-display); font-stretch: 85%; font-variant-numeric: tabular-nums; }
+.stat .l { font-size: 12px; color: var(--muted); }
+
+/* Tabs */
+.tabs { display: flex; gap: 2px; overflow-x: auto; border-bottom: 1px solid var(--line); scrollbar-width: thin; }
+.tab {
+  appearance: none; border: 0; background: none; color: var(--muted); cursor: pointer;
+  font: 600 13px/1 var(--f-body); padding: 11px 14px 12px; border-bottom: 2px solid transparent;
+  white-space: nowrap; margin-bottom: -1px;
+}
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tab .c { font: 500 11px var(--f-mono); color: var(--muted); margin-left: 6px; }
+
+/* Toolbar */
+.bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.blurb { flex: 1 1 320px; color: var(--muted); margin: 0; min-width: 0; }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ctl input[type=search], .ctl select, .btn {
+  font: 500 13px var(--f-body); color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 5px; padding: 7px 10px; height: 34px;
+}
+.ctl input[type=search] { width: min(260px, 100%); }
+.ctl select { max-width: 200px; }
+.btn { cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { border-color: var(--muted); }
+.btn[disabled] { opacity: .45; cursor: default; }
+.check { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: var(--ink); cursor: pointer; }
+.colpick { position: relative; }
+.colmenu {
+  position: absolute; right: 0; top: 40px; z-index: 30; width: 270px; max-height: 360px; overflow: auto;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--shadow);
+  padding: 8px; display: grid; gap: 2px;
+}
+.colmenu label { display: flex; gap: 8px; align-items: center; padding: 4px 6px; border-radius: 4px;
+  font: 12px var(--f-mono); cursor: pointer; }
+.colmenu label:hover { background: var(--sunk); }
+.colmenu .row { display: flex; gap: 6px; padding: 4px 4px 8px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+.colmenu .row button { font: 600 12px var(--f-body); background: none; border: 0; color: var(--accent); cursor: pointer; padding: 2px 4px; }
+
+/* Table */
+.pane { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: auto;
+  max-height: calc(100vh - 150px); min-height: 280px; }
+table { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; font-size: 13px; }
+th, td { padding: 7px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+td { max-width: 340px; }
+td.wide { min-width: 280px; white-space: normal; }
+td:not(.wide) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+thead th {
+  position: sticky; top: 0; z-index: 3; background: var(--sunk); white-space: nowrap;
+  font: 500 12px/1.2 var(--f-mono); color: var(--muted); cursor: pointer; user-select: none;
+}
+thead th .h { border-bottom: 1px dashed var(--muted); padding-bottom: 1px; }
+thead th:hover, thead th:focus-visible { color: var(--ink); }
+thead th .arr { font-size: 10px; margin-left: 4px; color: var(--accent); }
+tbody tr:hover td { background: var(--accent-soft); }
+th:first-child, td:first-child { position: sticky; left: 0; z-index: 2; background: var(--surface);
+  box-shadow: 1px 0 0 var(--line); font-weight: 600; }
+thead th:first-child { z-index: 4; background: var(--sunk); }
+td.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--f-mono); font-size: 12px; }
+td.mono { font-family: var(--f-mono); font-size: 12px; }
+td.empty { color: var(--line); }
+.d-plus { color: var(--plus); } .d-minus { color: var(--minus); }
+.lk { color: var(--ink); text-decoration: underline dotted var(--accent); text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px; cursor: help; }
+.lk:hover, .lk:focus-visible { color: var(--accent); }
+a.ext { font: 600 12px var(--f-body); text-decoration: none; }
+a.ext:hover { text-decoration: underline; }
+
+.pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font: 600 11.5px/1.6 var(--f-body);
+  background: var(--sunk); color: var(--muted); white-space: nowrap; }
+.pill.good { background: var(--good-bg); color: var(--good); }
+.pill.warn { background: var(--warn-bg); color: var(--warn); }
+.pill.bad { background: var(--bad-bg); color: var(--bad); }
+.pill.info { background: var(--info-bg); color: var(--info); }
+
+.pager { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;
+  color: var(--muted); font-size: 13px; }
+.pager .ctl { gap: 6px; }
+.none { padding: 40px 16px; text-align: center; color: var(--muted); }
+
+/* Hover card */
+#pop {
+  position: fixed; z-index: 50; width: min(380px, calc(100vw - 24px)); max-height: min(440px, 70vh); overflow: auto;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: var(--shadow); padding: 14px 16px; font-size: 13px; line-height: 1.5;
+}
+#pop .k { font: 500 11px var(--f-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+#pop h3 { margin: 2px 0 8px; font: 700 17px/1.2 var(--f-display); font-stretch: 85%; }
+#pop p { margin: 0 0 8px; }
+#pop .meta { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 8px 0; font-size: 12px; }
+#pop .meta dt { color: var(--muted); }
+#pop .meta dd { margin: 0; font-family: var(--f-mono); word-break: break-word; }
+#pop .go { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px;
+  margin: 6px 0; border-radius: 6px; background: var(--accent-soft); text-decoration: none; color: var(--ink); }
+#pop .go:hover { outline: 1px solid var(--accent); }
+#pop .go b { color: var(--accent); font-weight: 600; }
+#pop .go small { font: 11px var(--f-mono); color: var(--muted); }
+#pop .sec { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
+#pop ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 3px; }
+#pop li { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; }
+#pop li span { color: var(--muted); font-family: var(--f-mono); font-size: 11px; white-space: nowrap; }
+#pop .note { color: var(--muted); font-size: 12px; }
+#pop .pin { float: right; font: 11px var(--f-body); color: var(--muted); }
+
+footer { color: var(--muted); font-size: 12.5px; display: grid; gap: 6px; max-width: 95ch; }
+footer p { margin: 0; }
+footer code { font: 12px var(--f-mono); }
+@media (max-width: 640px) {
+  .asof { text-align: left; }
+  .pane { max-height: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  #pop { transition: opacity .12s ease; }
+}
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div>
+      <h1>Resolution 35 <span>network tables</span></h1>
+      <p>ITU Space Network List milestones and the satellites reported in each milestone PDF.
+         Hover a column name for its meaning. Hover an underlined value for the PDF and the
+         network's ITU Space Explorer page.</p>
+    </div>
+    <div class="asof" id="asof"></div>
+  </header>
+
+  <section class="stats" id="stats" aria-label="Summary"></section>
+
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Tables"></nav>
+
+  <div class="bar">
+    <p class="blurb" id="blurb"></p>
+    <div class="ctl">
+      <input type="search" id="q" placeholder="Search this table" aria-label="Search this table">
+      <select id="net" aria-label="Filter by network"></select>
+      <label class="check" id="latestWrap"><input type="checkbox" id="latest" checked> Latest PDF only</label>
+      <div class="colpick">
+        <button class="btn" id="colBtn" aria-expanded="false" aria-controls="colMenu">Columns</button>
+        <div class="colmenu" id="colMenu" hidden></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pane" id="pane"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+
+  <div class="pager">
+    <span id="count"></span>
+    <div class="ctl">
+      <button class="btn" id="prev">Previous</button>
+      <span id="pageNo"></span>
+      <button class="btn" id="next">Next</button>
+    </div>
+  </div>
+
+  <footer>
+    <p><b>About the Space Explorer links.</b> The number at the end of a Space Explorer address is an ITU
+      notice ID. Each submission for a network (advance publication, coordination, notification, and the
+      Res 49, Res 35 and Res 8 submissions) has its own. Network links here use the network's latest
+      notification, or its latest coordination request when it has no notification, which matches the
+      notice the Space Explorer shows for the network. <code>br6a_br6b_id_no</code> in the PDFs is the
+      notification that applied when that PDF was submitted, so it can be older.</p>
+    <p id="foot2"></p>
+  </footer>
+</div>
+<div id="pop" role="dialog" aria-live="polite" hidden></div>
+
+<script>
+const DATA = /*__DATA__*/null;
+const PAGE = 100;
+const tables = Object.fromEntries(DATA.tables.map(t => [t.id, t]));
+const state = {};
+let cur = null;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtN = n => Number(n).toLocaleString("en-US");
+
+/* ---------- header ---------- */
+const m = DATA.meta, c = m.counts;
+$("#asof").innerHTML = `Data from pipeline run <b>${esc(m.last_run)}</b><br>Space Explorer notices checked <b>${esc(m.notices_checked || "never")}</b>`;
+$("#stats").innerHTML = [
+  [c.networks, "Space Network List entries"],
+  [c.notified, "Satellites notified (latest)"],
+  [c.deployed, "Satellites reported deployed"],
+  [c.pdfs, "Milestone PDFs read"],
+].map(([n, l]) => `<div class="stat"><span class="n">${fmtN(n)}</span><span class="l">${l}</span></div>`).join("");
+$("#foot2").innerHTML = `Sources: <a href="${esc(m.snl_url)}" target="_blank" rel="noopener">ITU Res 35 Space Network List</a>, its milestone PDFs, and the ITU Space Explorer. Built ${esc(m.built)} by <code>build_dashboard.py</code> in the ESPL res35_pipeline.`;
+
+/* ---------- tabs ---------- */
+$("#tabs").innerHTML = DATA.tables.map(t =>
+  `<button class="tab" role="tab" id="tab-${t.id}" data-id="${t.id}" aria-selected="false">${esc(t.label)}<span class="c">${fmtN(t.rows.length)}</span></button>`).join("");
+$("#tabs").addEventListener("click", e => { const b = e.target.closest(".tab"); if (b) location.hash = b.dataset.id; });
+
+function stFor(t) {
+  if (!state[t.id]) {
+    const idx = Object.fromEntries(t.columns.map((c, i) => [c, i]));
+    state[t.id] = { q: "", net: "", page: 0, sort: null, dir: 1, latest: true,
+      visible: t.columns.filter(c => !t.hidden.includes(c)), idx,
+      text: t.rows.map(r => r.map(v => v == null ? "" : String(v)).join(" \u0001 ").toLowerCase()) };
+  }
+  return state[t.id];
+}
+
+function show(id) {
+  const t = tables[id] || DATA.tables[0];
+  cur = t; const s = stFor(t);
+  document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.id === t.id));
+  $("#blurb").textContent = t.blurb;
+  $("#q").value = s.q;
+  // network filter
+  const ni = s.idx.network_name ?? s.idx.networks;
+  const sel = $("#net");
+  if (ni != null || s.idx.pdf_id != null) {
+    const names = new Set();
+    t.rows.forEach(r => {
+      if (s.idx.network_name != null) names.add(r[s.idx.network_name]);
+      else if (s.idx.networks != null) String(r[s.idx.networks] || "").split(", ").forEach(n => names.add(n));
+      else { const p = DATA.pdfs[r[s.idx.pdf_id]]; if (p) names.add(p.name); }
+    });
+    sel.innerHTML = `<option value="">All networks</option>` + [...names].filter(Boolean).sort().map(n => `<option>${esc(n)}</option>`).join("");
+    sel.value = s.net; sel.hidden = false;
+  } else { sel.hidden = true; }
+  $("#latestWrap").hidden = s.idx.in_latest_pdf == null;
+  $("#latest").checked = s.latest;
+  closeCols(); hidePop(true);
+  render();
+}
+
+function rowNet(t, s, r) {
+  if (s.idx.network_name != null) return [r[s.idx.network_name]];
+  if (s.idx.networks != null) return String(r[s.idx.networks] || "").split(", ");
+  if (s.idx.pdf_id != null) { const p = DATA.pdfs[r[s.idx.pdf_id]]; return p ? [p.name] : []; }
+  return [];
+}
+
+function filtered(t, s) {
+  const q = s.q.trim().toLowerCase();
+  let rows = t.rows.map((r, i) => i);
+  if (s.idx.in_latest_pdf != null && s.latest) rows = rows.filter(i => t.rows[i][s.idx.in_latest_pdf] === true);
+  if (s.net) rows = rows.filter(i => rowNet(t, s, t.rows[i]).includes(s.net));
+  if (q) rows = rows.filter(i => s.text[i].includes(q));
+  if (s.sort != null) {
+    const k = s.idx[s.sort];
+    rows.sort((a, b) => {
+      const x = t.rows[a][k], y = t.rows[b][k];
+      if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
+      if (typeof x === "number" && typeof y === "number") return (x - y) * s.dir;
+      return String(x).localeCompare(String(y), "en", { numeric: true }) * s.dir;
+    });
+  }
+  return rows;
+}
+
+/* ---------- cells ---------- */
+const WIDE = new Set(["bureau_notes", "Definition", "networks", "source_note", "parse_problems", "milestone_progress"]);
+const MILESTONE_COLS = new Set(["M0", "M1", "M2", "M3"]);
+
+function statusClass(v) {
+  const s = String(v).toLowerCase();
+  if (s.startsWith("partially") || s.includes("resolves 12")) return "warn";
+  if (s.startsWith("met") || s === "yes" || s.startsWith("100% deployed") || s.startsWith("at least")) return "good";
+  if (s.startsWith("not met") || s === "no" || s.startsWith("deadline passed")) return "bad";
+  if (s.startsWith("as received") || s.startsWith("skipped")) return "info";
+  return "";
+}
+
+function netKey(name, adm) {
+  if (adm && DATA.networks[name + "|" + adm]) return name + "|" + adm;
+  const k = Object.keys(DATA.networks).find(k => k.startsWith(name + "|"));
+  return k || null;
+}
+
+function cell(t, s, r, col) {
+  const v = r[s.idx[col]];
+  const g = k => r[s.idx[k]];
+  if (v == null || v === "") return `<td class="empty">·</td>`;
+  const text = typeof v === "boolean" ? (v ? "Yes" : "No") : String(v);
+  const trig = (kind, payload, inner) =>
+    `<span class="lk" tabindex="0" data-pop="${kind}" data-p="${esc(JSON.stringify(payload))}">${inner}</span>`;
+
+  // links that are themselves URLs
+  if (/(_url|^Source)$/.test(col) && /^https?:/.test(text)) {
+    const label = col === "Source" ? new URL(text).hostname.replace(/^www\./, "") : "PDF";
+    return `<td><a class="ext" href="${esc(text)}" target="_blank" rel="noopener">${label} ↗</a></td>`;
+  }
+  // network names
+  if (col === "network_name") {
+    const k = netKey(text, g("adm") || (g("pdf_id") && DATA.pdfs[g("pdf_id")]?.adm));
+    return `<td>${k ? trig("net", { k, pdf: g("pdf_id") }, esc(text)) : esc(text)}</td>`;
+  }
+  if (col === "networks") {
+    return `<td class="wide">${text.split(", ").map(n => { const k = netKey(n); return k ? trig("net", { k }, esc(n)) : esc(n); }).join(", ")}</td>`;
+  }
+  if (col === "network_key") {
+    const [n, a] = text.split(" | "); const k = netKey(n, a);
+    return `<td class="mono">${k ? trig("net", { k }, esc(text)) : esc(text)}</td>`;
+  }
+  if (col === "satellite_name" && s.idx.network_name != null) {
+    const k = netKey(g("network_name"), g("adm"));
+    return `<td>${trig("sat", { k, pdf: g("pdf_id"), name: text, ms: g("milestone") }, esc(text))}</td>`;
+  }
+  if (col === "pdf_id" || ((col === "special_section" || col === "brific_number") && g("pdf_id"))) {
+    const id = col === "pdf_id" ? text : g("pdf_id");
+    const cls = col === "special_section" ? "" : "mono";
+    return `<td class="${cls}">${DATA.pdfs[id] ? trig("pdf", { id }, esc(text)) : esc(text)}</td>`;
+  }
+  // milestone statuses in the Networks tab
+  if (MILESTONE_COLS.has(col)) {
+    const pid = DATA.milestone_pdf[g("network_key") + "|" + col];
+    const pill = `<span class="pill ${statusClass(text)}">${esc(text)}</span>`;
+    return `<td>${trig("ms", { id: pid || null, status: text, ms: col, k: netKey(g("network_name"), g("adm")) }, pill)}</td>`;
+  }
+  if (col === "milestone" && g("pdf_id") && DATA.pdfs[g("pdf_id")]) {
+    return `<td>${trig("pdf", { id: g("pdf_id") }, esc(text))}</td>`;
+  }
+  if (col === "status_clean" || col === "met" || col === "milestone_progress" || col === "highest_milestone_met") {
+    const cls = col === "highest_milestone_met" ? "info" : statusClass(text);
+    return `<td><span class="pill ${cls}">${esc(text)}</span></td>`;
+  }
+  // notice IDs
+  if (col === "br6a_br6b_id_no" || col === "itu_sat_id") {
+    const ntc = col === "itu_sat_id" ? text.split("_")[0] : text;
+    const p = DATA.pdfs[g("pdf_id")];
+    const k = p ? netKey(p.name, p.adm) : null;
+    return `<td class="mono">${k && /^\d+$/.test(ntc) ? trig("ntc", { k, ntc, col }, esc(text)) : esc(text)}</td>`;
+  }
+  if (/_minus_notified_/.test(col) && typeof v === "number") {
+    const cls = v > 0 ? "d-plus" : v < 0 ? "d-minus" : "";
+    return `<td class="num ${cls}">${v > 0 ? "+" : ""}${fmtN(v)}</td>`;
+  }
+  if (typeof v === "number") return `<td class="num">${/(_id|_no|_number)$/.test(col) ? v : fmtN(v)}</td>`;
+  if (WIDE.has(col)) return `<td class="wide">${esc(text)}</td>`;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text) || /_id$/.test(col)) return `<td class="mono">${esc(text)}</td>`;
+  return `<td title="${text.length > 40 ? esc(text) : ""}">${esc(text)}</td>`;
+}
+
+function render() {
+  const t = cur, s = stFor(t);
+  const rows = filtered(t, s);
+  const pages = Math.max(1, Math.ceil(rows.length / PAGE));
+  s.page = Math.min(s.page, pages - 1);
+  const slice = rows.slice(s.page * PAGE, s.page * PAGE + PAGE);
+  const cols = t.columns.filter(c => s.visible.includes(c));
+  $("#tbl thead").innerHTML = "<tr>" + cols.map(c =>
+    `<th tabindex="0" data-col="${esc(c)}" data-pop="col" data-p="${esc(JSON.stringify({ col: c }))}" aria-sort="${s.sort === c ? (s.dir > 0 ? "ascending" : "descending") : "none"}"><span class="h">${esc(c)}</span>${s.sort === c ? `<span class="arr">${s.dir > 0 ? "▲" : "▼"}</span>` : ""}</th>`).join("") + "</tr>";
+  $("#tbl tbody").innerHTML = slice.length
+    ? slice.map(i => "<tr>" + cols.map(c => cell(t, s, t.rows[i], c)).join("") + "</tr>").join("")
+    : `<tr><td class="none" colspan="${cols.length}">No rows match. Clear the search or pick "All networks".</td></tr>`;
+  const from = rows.length ? s.page * PAGE + 1 : 0;
+  $("#count").textContent = `Rows ${fmtN(from)}–${fmtN(Math.min(rows.length, (s.page + 1) * PAGE))} of ${fmtN(rows.length)}` +
+    (rows.length !== t.rows.length ? ` (filtered from ${fmtN(t.rows.length)})` : "");
+  $("#pageNo").textContent = `Page ${s.page + 1} of ${pages}`;
+  $("#prev").disabled = s.page === 0;
+  $("#next").disabled = s.page >= pages - 1;
+}
+
+/* ---------- controls ---------- */
+let qt;
+$("#q").addEventListener("input", e => { clearTimeout(qt); qt = setTimeout(() => { const s = stFor(cur); s.q = e.target.value; s.page = 0; render(); }, 120); });
+$("#net").addEventListener("change", e => { const s = stFor(cur); s.net = e.target.value; s.page = 0; render(); });
+$("#latest").addEventListener("change", e => { const s = stFor(cur); s.latest = e.target.checked; s.page = 0; render(); });
+$("#prev").addEventListener("click", () => { stFor(cur).page--; render(); $("#pane").scrollTop = 0; });
+$("#next").addEventListener("click", () => { stFor(cur).page++; render(); $("#pane").scrollTop = 0; });
+$("#tbl thead").addEventListener("click", e => {
+  const th = e.target.closest("th"); if (!th) return;
+  const s = stFor(cur), c = th.dataset.col;
+  if (s.sort === c) { if (s.dir > 0) s.dir = -1; else { s.sort = null; s.dir = 1; } } else { s.sort = c; s.dir = 1; }
+  s.page = 0; render();
+});
+$("#tbl thead").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.closest("th")) e.target.closest("th").click(); });
+
+function closeCols() { $("#colMenu").hidden = true; $("#colBtn").setAttribute("aria-expanded", "false"); }
+$("#colBtn").addEventListener("click", e => {
+  e.stopPropagation();
+  const menu = $("#colMenu");
+  if (!menu.hidden) return closeCols();
+  const s = stFor(cur);
+  menu.innerHTML = `<div class="row"><button data-all="1">Show all</button><button data-all="0">Defaults</button></div>` +
+    cur.columns.map((c, i) => `<label><input type="checkbox" id="col-${cur.id}-${i}" value="${esc(c)}" ${s.visible.includes(c) ? "checked" : ""} ${i === 0 ? "disabled" : ""}> ${esc(c)}</label>`).join("");
+  menu.hidden = false; $("#colBtn").setAttribute("aria-expanded", "true");
+});
+$("#colMenu").addEventListener("click", e => e.stopPropagation());
+$("#colMenu").addEventListener("change", e => {
+  const s = stFor(cur);
+  s.visible = [...$("#colMenu").querySelectorAll("input:checked")].map(x => x.value);
+  if (!s.visible.includes(cur.columns[0])) s.visible.unshift(cur.columns[0]);
+  render();
+});
+$("#colMenu").addEventListener("click", e => {
+  const b = e.target.closest("button[data-all]"); if (!b) return;
+  const s = stFor(cur);
+  s.visible = b.dataset.all === "1" ? [...cur.columns] : cur.columns.filter(c => !cur.hidden.includes(c));
+  $("#colMenu").querySelectorAll("input").forEach(x => x.checked = s.visible.includes(x.value));
+  render();
+});
+document.addEventListener("click", () => closeCols());
+
+/* ---------- hover cards ---------- */
+const pop = $("#pop");
+let showT, hideT, pinned = false, anchor = null;
+
+const go = (url, label, sub) => `<a class="go" href="${esc(url)}" target="_blank" rel="noopener"><b>${label} ↗</b>${sub ? `<small>${esc(sub)}</small>` : ""}</a>`;
+const NOTICE = { "11.2": "Notification (Art. 11)", "9.6": "Coordination request (No. 9.6)",
+  "9.1/IA": "Advance publication (No. 9.1)", "RS35": "Res 35 submission", "RS8": "Res 8 submission",
+  "RS49": "Res 49 due diligence" };
+const noticeLabel = x => NOTICE[x.provision] || `${x.category} ${x.provision || ""}`;
+const msLabel = { M0: "M0 · initial deployment", M1: "M1 · 10% deployed", M2: "M2 · 50% deployed", M3: "M3 · 100% deployed" };
+
+function netBlock(k, opts = {}) {
+  const n = DATA.networks[k]; if (!n) return "";
+  let h = "";
+  if (n.page) h += go(n.page.url, `${esc(n.name)} in ITU Space Explorer`, `${n.page.category.toLowerCase()} notice ${n.page.ntc_id}`);
+  else h += `<p class="note">${esc(n.name)} (${esc(n.adm)}) is not in the ITU Space Explorer under this name (checked ${esc(DATA.meta.notices_checked || "")}). It may have been renamed or suppressed.</p>`;
+  if (!opts.noPdfs && n.pdfs.length) {
+    h += `<div class="sec"><div class="k">Res 35 milestone PDFs</div><ul>` +
+      n.pdfs.map(p => `<li><a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.milestone)} · ${esc(p.pdf_id)}</a><span>BR IFIC ${esc(p.brific_date || "")}</span></li>`).join("") + "</ul></div>";
+  }
+  if (!opts.noNotices && n.notices.length) {
+    h += `<div class="sec"><div class="k">All notices for this network</div><ul>` +
+      n.notices.map(x => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${x.ntc_id}</a><span>${esc(noticeLabel(x))} · ${esc(x.received || "")}</span></li>`).join("") + "</ul></div>";
+  }
+  return h;
+}
+
+function pdfBlock(id) {
+  const p = DATA.pdfs[id]; if (!p) return "";
+  return go(p.url, `Open milestone PDF`, id) +
+    `<dl class="meta"><dt>Network</dt><dd>${esc(p.name)} (${esc(p.adm)})</dd><dt>Milestone</dt><dd>${esc(msLabel[p.milestone] || p.milestone)}</dd>` +
+    `<dt>Special Section</dt><dd>${esc(p.special_section || "")}</dd><dt>BR IFIC</dt><dd>${esc(p.brific_number || "")} · ${esc(p.brific_date || "")}</dd></dl>`;
+}
+
+function content(kind, p) {
+  if (kind === "col") {
+    const d = cur.defs[p.col];
+    let h = `<div class="k">Column</div><h3>${esc(p.col)}</h3>`;
+    if (!d) return h + `<p class="note">No definition yet. Add one to docs/column_definitions.csv.</p>`;
+    if (d.definition) h += `<p>${esc(d.definition)}</p>`;
+    if (d.itu && d.itu !== "nan") h += `<dl class="meta"><dt>ITU label</dt><dd>${esc(d.itu)}</dd></dl>`;
+    if (d.source_url) h += go(d.source_url, esc(d.source_name || "Source"), new URL(d.source_url).hostname.replace(/^www\./, ""));
+    else if (d.source_name) h += `<p class="note">Source: ${esc(d.source_name)}</p>`;
+    return h + `<p class="note">Click the column name to sort.</p>`;
+  }
+  if (kind === "net") {
+    const n = DATA.networks[p.k];
+    return `<div class="k">Satellite network · ${esc(n.adm)}</div><h3>${esc(n.name)}</h3>` + netBlock(p.k);
+  }
+  if (kind === "pdf") {
+    const pd = DATA.pdfs[p.id]; const k = netKey(pd.name, pd.adm);
+    return `<div class="k">Res 35 milestone PDF</div><h3>${esc(p.id)}</h3>` + pdfBlock(p.id) +
+      (k ? `<div class="sec">${netBlock(k, { noPdfs: true, noNotices: true })}</div>` : "");
+  }
+  if (kind === "ms") {
+    let h = `<div class="k">${esc(msLabel[p.ms] || p.ms)}</div><h3>${esc(p.status)}</h3>`;
+    h += p.id ? pdfBlock(p.id) : `<p class="note">No PDF has been published for this milestone yet.</p>`;
+    if (p.k) h += `<div class="sec">${netBlock(p.k, { noPdfs: true, noNotices: true })}</div>`;
+    return h;
+  }
+  if (kind === "sat") {
+    let h = `<div class="k">Satellite reported in ${esc(p.ms || "")}</div><h3>${esc(p.name)}</h3>`;
+    if (p.pdf) h += pdfBlock(p.pdf);
+    if (p.k) h += `<div class="sec">${netBlock(p.k, { noPdfs: true, noNotices: true })}</div>`;
+    return h;
+  }
+  if (kind === "ntc") {
+    const n = DATA.networks[p.k];
+    const url = `https://www.itu.int/itu-r/space/apps/public/spaceexplorer/networks-explorer/space-stations/dashboard/non-plans/${encodeURIComponent(n.name)}/${p.ntc}`;
+    const known = n.notices.find(x => String(x.ntc_id) === String(p.ntc));
+    let h = `<div class="k">${p.col === "itu_sat_id" ? "Notice ID in this ITU_SAT_ID" : "Notice ID referenced in the PDF"}</div><h3>${esc(p.ntc)}</h3>`;
+    h += go(url, `This notice in ITU Space Explorer`, known ? `${noticeLabel(known)} · ${known.received}` : "not in the network's current notice list");
+    if (n.page && String(n.page.ntc_id) !== String(p.ntc))
+      h += `<p class="note">The network's current ${n.page.category.toLowerCase()} notice is ${n.page.ntc_id}.</p>`;
+    return h + `<div class="sec">${netBlock(p.k, { noPdfs: true, noNotices: true })}</div>`;
+  }
+  return "";
+}
+
+function place(el) {
+  const r = el.getBoundingClientRect();
+  const w = pop.offsetWidth, h = pop.offsetHeight, vw = innerWidth, vh = innerHeight;
+  let x = Math.min(Math.max(8, r.left), vw - w - 8);
+  let y = r.bottom + 6;
+  if (y + h > vh - 8) y = Math.max(8, r.top - h - 6);
+  pop.style.left = x + "px"; pop.style.top = y + "px";
+}
+
+function openPop(el) {
+  let p; try { p = JSON.parse(el.dataset.p); } catch { return; }
+  const html = content(el.dataset.pop, p); if (!html) return;
+  anchor = el;
+  pop.innerHTML = (pinned ? `<span class="pin">Pinned · Esc to close</span>` : "") + html;
+  pop.hidden = false; place(el);
+}
+function hidePop(force) { if (pinned && !force) return; pinned = false; pop.hidden = true; anchor = null; }
+
+document.addEventListener("mouseover", e => {
+  const el = e.target.closest("[data-pop]");
+  if (el) { clearTimeout(hideT); if (pinned || el === anchor) return; clearTimeout(showT); showT = setTimeout(() => openPop(el), 160); }
+  else if (e.target.closest("#pop")) clearTimeout(hideT);
+});
+document.addEventListener("mouseout", e => {
+  const from = e.target.closest("[data-pop], #pop"); if (!from) return;
+  const to = e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest("[data-pop], #pop");
+  if (to === from) return;
+  clearTimeout(showT);
+  if (!pinned) hideT = setTimeout(() => hidePop(), 280);
+});
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-pop]");
+  if (el && el.dataset.pop !== "col") { e.preventDefault(); pinned = true; openPop(el); return; }
+  if (!e.target.closest("#pop") && pinned) hidePop(true);
+});
+document.addEventListener("focusin", e => { const el = e.target.closest("[data-pop]"); if (el) openPop(el); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") hidePop(true); });
+$("#pane").addEventListener("scroll", () => { if (!pinned) hidePop(); else if (anchor) place(anchor); });
+addEventListener("resize", () => anchor && !pop.hidden && place(anchor));
+
+/* ---------- routing ---------- */
+addEventListener("hashchange", () => show(location.hash.slice(1)));
+show(location.hash.slice(1) || DATA.tables[0].id);
+</script>
