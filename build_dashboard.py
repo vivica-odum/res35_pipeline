@@ -15,6 +15,7 @@ Hovering a network name, PDF ID, milestone or notice ID shows links to the
 milestone PDFs and to the network's ITU Space Explorer page.
 """
 import argparse
+import base64
 import json
 import math
 from datetime import date, datetime
@@ -28,6 +29,7 @@ HERE = Path(__file__).parent
 MAIN = HERE / "output" / "res35_main.xlsx"
 DEFS = HERE / "docs" / "column_definitions.csv"
 TEMPLATE = HERE / "templates" / "dashboard_template.html"
+LOGO = HERE / "templates" / "espl_logo.png"           # ESPL logo, black on transparent
 OUT = HERE / "output" / "res35_dashboard.html"
 SNL_URL = "https://www.itu.int/net/ITU-R/space/res35/index.html"
 
@@ -191,7 +193,9 @@ def main():
     }
 
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    html = TEMPLATE.read_text(encoding="utf-8").replace("/*__DATA__*/null", payload)
+    logo = "data:image/png;base64," + base64.b64encode(LOGO.read_bytes()).decode() if LOGO.exists() else ""
+    html = (TEMPLATE.read_text(encoding="utf-8")
+            .replace("/*__DATA__*/null", payload).replace("__ESPL_LOGO__", logo))
     if not args.bare:      # a complete page that opens in any browser
         html = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
                 '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
