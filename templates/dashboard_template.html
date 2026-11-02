@@ -119,16 +119,30 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .btn[disabled] { opacity: .45; cursor: default; }
 .check { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: var(--ink); cursor: pointer; }
 .colpick { position: relative; }
+.chev { width: 12px; height: 12px; flex: 0 0 12px; fill: none; stroke: currentColor; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round; color: var(--muted); transition: transform .18s ease; }
+.btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.btn[aria-expanded="true"] { border-color: var(--accent); }
+.btn.on { border-color: var(--accent); background: var(--gold-soft); }
+#netLabel { max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .colmenu {
   position: absolute; right: 0; top: 40px; z-index: 30; width: 270px; max-height: 360px; overflow: auto;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--shadow);
-  padding: 8px; display: grid; gap: 2px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow);
+  padding: 8px; display: grid; gap: 2px; align-content: start;
 }
+.colmenu.netmenu { left: 0; right: auto; width: 250px; }
+.colmenu .mhead { position: sticky; top: -8px; z-index: 1; margin: -8px -8px 2px; padding: 8px 8px 0;
+  background: var(--surface); }
+.colmenu .find { width: 100%; height: 30px; margin-bottom: 4px; padding: 5px 8px; font: 13px var(--f-body);
+  color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+.netmenu label { font-family: var(--f-body); font-size: 13px; }
+.netmenu label .adm { margin-left: auto; font: 11px var(--f-mono); color: var(--muted); }
 .colmenu label { display: flex; gap: 8px; align-items: center; padding: 4px 6px; border-radius: 4px;
   font: 12px var(--f-mono); cursor: pointer; }
 .colmenu label:hover { background: var(--sunk); }
 .colmenu .row { display: flex; gap: 6px; padding: 4px 4px 8px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
-.colmenu .row button { font: 600 12px var(--f-body); background: none; border: 0; color: var(--accent); cursor: pointer; padding: 2px 4px; }
+.colmenu .row button { font: 600 12px var(--f-body); background: none; border: 0; color: var(--link); cursor: pointer; padding: 2px 4px; }
+@media (prefers-reduced-motion: reduce) { .chev { transition: none; } }
 
 /* Table */
 .pane { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 6px 22px rgba(0, 0, 0, .05); overflow: auto;
@@ -228,10 +242,13 @@ footer code { font: 12px var(--f-mono); }
     <p class="blurb" id="blurb"></p>
     <div class="ctl">
       <input type="search" id="q" placeholder="Search this table" aria-label="Search this table">
-      <select id="net" aria-label="Filter by network"></select>
+      <div class="colpick" id="netWrap">
+        <button class="btn" id="netBtn" aria-expanded="false" aria-controls="netMenu" aria-haspopup="true"><span id="netLabel">All networks</span><svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+        <div class="colmenu netmenu" id="netMenu" hidden></div>
+      </div>
       <label class="check" id="latestWrap"><input type="checkbox" id="latest" checked> Latest PDF only</label>
       <div class="colpick">
-        <button class="btn" id="colBtn" aria-expanded="false" aria-controls="colMenu">Columns</button>
+        <button class="btn" id="colBtn" aria-expanded="false" aria-controls="colMenu" aria-haspopup="true">Columns<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
         <div class="colmenu" id="colMenu" hidden></div>
       </div>
     </div>
@@ -265,6 +282,8 @@ const DATA = /*__DATA__*/null;
 const PAGE = 100;
 const tables = Object.fromEntries(DATA.tables.map(t => [t.id, t]));
 const state = {};
+const netSel = new Set();          // networks picked in the network filter; shared by every tab
+const ALL_NETS = [...new Set(Object.values(DATA.networks).map(n => n.name))].sort((a, b) => a.localeCompare(b, "en", { numeric: true }));
 let cur = null;
 
 const $ = s => document.querySelector(s);
@@ -290,7 +309,7 @@ $("#tabs").addEventListener("click", e => { const b = e.target.closest(".tab"); 
 function stFor(t) {
   if (!state[t.id]) {
     const idx = Object.fromEntries(t.columns.map((c, i) => [c, i]));
-    state[t.id] = { q: "", net: "", page: 0, sort: null, dir: 1, latest: true,
+    state[t.id] = { q: "", page: 0, sort: null, dir: 1, latest: true,
       visible: t.columns.filter(c => !t.hidden.includes(c)), idx,
       text: t.rows.map(r => r.map(v => v == null ? "" : String(v)).join(" \u0001 ").toLowerCase()) };
   }
@@ -303,22 +322,12 @@ function show(id) {
   document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.id === t.id));
   $("#blurb").textContent = t.blurb;
   $("#q").value = s.q;
-  // network filter
-  const ni = s.idx.network_name ?? s.idx.networks;
-  const sel = $("#net");
-  if (ni != null || s.idx.pdf_id != null) {
-    const names = new Set();
-    t.rows.forEach(r => {
-      if (s.idx.network_name != null) names.add(r[s.idx.network_name]);
-      else if (s.idx.networks != null) String(r[s.idx.networks] || "").split(", ").forEach(n => names.add(n));
-      else { const p = DATA.pdfs[r[s.idx.pdf_id]]; if (p) names.add(p.name); }
-    });
-    sel.innerHTML = `<option value="">All networks</option>` + [...names].filter(Boolean).sort().map(n => `<option>${esc(n)}</option>`).join("");
-    sel.value = s.net; sel.hidden = false;
-  } else { sel.hidden = true; }
+  // network filter (only on tables that can be tied to a network)
+  $("#netWrap").hidden = s.idx.network_name == null && s.idx.networks == null && s.idx.pdf_id == null;
+  netLabel();
   $("#latestWrap").hidden = s.idx.in_latest_pdf == null;
   $("#latest").checked = s.latest;
-  closeCols(); hidePop(true);
+  closeMenus(); hidePop(true);
   render();
 }
 
@@ -333,7 +342,7 @@ function filtered(t, s) {
   const q = s.q.trim().toLowerCase();
   let rows = t.rows.map((r, i) => i);
   if (s.idx.in_latest_pdf != null && s.latest) rows = rows.filter(i => t.rows[i][s.idx.in_latest_pdf] === true);
-  if (s.net) rows = rows.filter(i => rowNet(t, s, t.rows[i]).includes(s.net));
+  if (netSel.size && !$("#netWrap").hidden) rows = rows.filter(i => rowNet(t, s, t.rows[i]).some(n => netSel.has(n)));
   if (q) rows = rows.filter(i => s.text[i].includes(q));
   if (s.sort != null) {
     const k = s.idx[s.sort];
@@ -441,7 +450,7 @@ function render() {
     `<th tabindex="0" data-col="${esc(c)}" data-pop="col" data-p="${esc(JSON.stringify({ col: c }))}" aria-sort="${s.sort === c ? (s.dir > 0 ? "ascending" : "descending") : "none"}"><span class="h">${esc(c)}</span>${s.sort === c ? `<span class="arr">${s.dir > 0 ? "▲" : "▼"}</span>` : ""}</th>`).join("") + "</tr>";
   $("#tbl tbody").innerHTML = slice.length
     ? slice.map(i => "<tr>" + cols.map(c => cell(t, s, t.rows[i], c)).join("") + "</tr>").join("")
-    : `<tr><td class="none" colspan="${cols.length}">No rows match. Clear the search or pick "All networks".</td></tr>`;
+    : `<tr><td class="none" colspan="${cols.length}">No rows match. Clear the search or the network filter.</td></tr>`;
   const from = rows.length ? s.page * PAGE + 1 : 0;
   $("#count").textContent = `Rows ${fmtN(from)}–${fmtN(Math.min(rows.length, (s.page + 1) * PAGE))} of ${fmtN(rows.length)}` +
     (rows.length !== t.rows.length ? ` (filtered from ${fmtN(t.rows.length)})` : "");
@@ -453,7 +462,6 @@ function render() {
 /* ---------- controls ---------- */
 let qt;
 $("#q").addEventListener("input", e => { clearTimeout(qt); qt = setTimeout(() => { const s = stFor(cur); s.q = e.target.value; s.page = 0; render(); }, 120); });
-$("#net").addEventListener("change", e => { const s = stFor(cur); s.net = e.target.value; s.page = 0; render(); });
 $("#latest").addEventListener("change", e => { const s = stFor(cur); s.latest = e.target.checked; s.page = 0; render(); });
 $("#prev").addEventListener("click", () => { stFor(cur).page--; render(); $("#pane").scrollTop = 0; });
 $("#next").addEventListener("click", () => { stFor(cur).page++; render(); $("#pane").scrollTop = 0; });
@@ -465,13 +473,58 @@ $("#tbl thead").addEventListener("click", e => {
 });
 $("#tbl thead").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.closest("th")) e.target.closest("th").click(); });
 
-function closeCols() { $("#colMenu").hidden = true; $("#colBtn").setAttribute("aria-expanded", "false"); }
+function closeMenus() {
+  for (const [m, b] of [["#colMenu", "#colBtn"], ["#netMenu", "#netBtn"]]) { $(m).hidden = true; $(b).setAttribute("aria-expanded", "false"); }
+}
+const closeCols = closeMenus;
+
+/* network filter: pick one or more networks to compare */
+function netLabel() {
+  const n = [...netSel], lab = $("#netLabel");
+  lab.textContent = !n.length ? "All networks" : n.length === 1 ? n[0]
+    : n.join(", ").length <= 24 ? n.join(", ") : `${n.length} networks`;
+  $("#netBtn").classList.toggle("on", n.length > 0);
+  $("#netBtn").title = n.length ? "Showing: " + n.join(", ") : "";
+}
+function netList(filter = "") {
+  const f = filter.trim().toLowerCase();
+  const adm = name => [...new Set(Object.values(DATA.networks).filter(x => x.name === name).map(x => x.adm))].join(", ");
+  return ALL_NETS.filter(n => !f || n.toLowerCase().includes(f)).map((n, i) =>
+    `<label><input type="checkbox" id="net-${i}-${esc(n).replace(/[^\w-]/g, "_")}" value="${esc(n)}" ${netSel.has(n) ? "checked" : ""}> ${esc(n)}<span class="adm">${esc(adm(n))}</span></label>`).join("")
+    || `<p class="note" style="margin:6px;color:var(--muted)">No network matches.</p>`;
+}
+$("#netBtn").addEventListener("click", e => {
+  e.stopPropagation();
+  const menu = $("#netMenu");
+  if (!menu.hidden) return closeMenus();
+  closeMenus();
+  menu.innerHTML = `<div class="mhead"><input type="search" class="find" id="netFind" placeholder="Find a network" aria-label="Find a network">` +
+    `<div class="row"><button data-net="all">Select all</button><button data-net="none">Clear</button></div></div><div id="netItems">${netList()}</div>`;
+  menu.hidden = false; $("#netBtn").setAttribute("aria-expanded", "true");
+  $("#netFind").focus();
+});
+$("#netMenu").addEventListener("click", e => {
+  e.stopPropagation();
+  const b = e.target.closest("button[data-net]"); if (!b) return;
+  if (b.dataset.net === "none") netSel.clear();
+  else $("#netItems").querySelectorAll("input").forEach(x => netSel.add(x.value));   // all shown (after Find)
+  $("#netItems").querySelectorAll("input").forEach(x => x.checked = netSel.has(x.value));
+  netLabel(); stFor(cur).page = 0; render();
+});
+$("#netMenu").addEventListener("input", e => { if (e.target.id === "netFind") $("#netItems").innerHTML = netList(e.target.value); });
+$("#netMenu").addEventListener("change", e => {
+  const x = e.target; if (x.type !== "checkbox") return;
+  x.checked ? netSel.add(x.value) : netSel.delete(x.value);
+  netLabel(); stFor(cur).page = 0; render();
+});
+
 $("#colBtn").addEventListener("click", e => {
   e.stopPropagation();
   const menu = $("#colMenu");
-  if (!menu.hidden) return closeCols();
+  if (!menu.hidden) return closeMenus();
+  closeMenus();
   const s = stFor(cur);
-  menu.innerHTML = `<div class="row"><button data-all="1">Show all</button><button data-all="0">Defaults</button></div>` +
+  menu.innerHTML = `<div class="mhead"><div class="row"><button data-all="1">Show all</button><button data-all="0">Defaults</button></div></div>` +
     cur.columns.map((c, i) => `<label><input type="checkbox" id="col-${cur.id}-${i}" value="${esc(c)}" ${s.visible.includes(c) ? "checked" : ""} ${i === 0 ? "disabled" : ""}> ${esc(c)}</label>`).join("");
   menu.hidden = false; $("#colBtn").setAttribute("aria-expanded", "true");
 });
@@ -489,7 +542,7 @@ $("#colMenu").addEventListener("click", e => {
   $("#colMenu").querySelectorAll("input").forEach(x => x.checked = s.visible.includes(x.value));
   render();
 });
-document.addEventListener("click", () => closeCols());
+document.addEventListener("click", () => closeMenus());
 
 /* ---------- hover cards ---------- */
 const pop = $("#pop");
@@ -620,7 +673,7 @@ document.addEventListener("click", e => {
   if (!e.target.closest("#pop") && pinned) hidePop(true);
 });
 document.addEventListener("focusin", e => { const el = e.target.closest("[data-pop]"); if (el) openPop(el); });
-document.addEventListener("keydown", e => { if (e.key === "Escape") hidePop(true); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") { hidePop(true); closeMenus(); } });
 $("#pane").addEventListener("scroll", () => { if (!pinned) hidePop(); else if (anchor) place(anchor); });
 addEventListener("resize", () => anchor && !pop.hidden && place(anchor));
 
