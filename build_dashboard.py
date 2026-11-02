@@ -132,6 +132,39 @@ def network_links(networks, pdfs, notices):
     return out
 
 
+def summary_stats(overview, sats, pdfs):
+    """Numbers for the summary strip, each with a note shown on hover.
+
+    Some networks appear on the Space Network List more than once (e.g. L5), with the same
+    totals on each row, so totals are taken once per network (name + ADM), not per row."""
+    per_net = overview.groupby(["network_name", "adm"], as_index=False)[["total_notified", "total_deployed"]].max()
+    repeats = overview[overview.duplicated(["network_name", "adm"], keep=False)]["network_name"].unique()
+    latest = sats[sats["in_latest_pdf"].fillna(False).astype(bool)]
+    by_name = latest.groupby("satellite_name")["network_name"].nunique()
+    n_shared = int((by_name > 1).sum())
+    notified, deployed = int(per_net["total_notified"].fillna(0).sum()), int(per_net["total_deployed"].fillna(0).sum())
+    row_notified, row_deployed = int(overview["total_notified"].fillna(0).sum()), int(overview["total_deployed"].fillna(0).sum())
+    rep = ", ".join(sorted(repeats))
+    return [
+        {"n": len(per_net), "label": "Satellite networks",
+         "note": f"{len(per_net)} networks on {len(overview)} Space Network List rows."
+                 + (f" {rep} each appear more than once (one row per 7-year limit date)." if rep else "")},
+        {"n": notified, "label": "Satellites notified",
+         "note": "Satellites in each network's latest notified filing, counted once per network. "
+                 "This is the number the 10% / 50% / 100% milestones are measured against."
+                 + (f" Adding up every Space Network List row instead would give {row_notified:,}." if row_notified != notified else "")},
+        {"n": deployed, "label": "Satellites reported deployed",
+         "note": "Satellites each network reported as deployed in its latest Res 35 report, counted once per network. "
+                 "A satellite reported under two networks is counted in both."
+                 + (f" Adding up every Space Network List row instead would give {row_deployed:,}." if row_deployed != deployed else "")},
+        {"n": int(by_name.size), "label": "Distinct satellites reported",
+         "note": f"Different satellite names in the networks' latest milestone PDFs. Fewer than the deployed total "
+                 f"because {n_shared:,} satellites are reported under more than one network (see the Shared satellites tab)."},
+        {"n": int(len(pdfs)), "label": "Milestone PDFs read",
+         "note": "Res 35 milestone reports published on the Space Network List and read by the pipeline."},
+    ]
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     ap.add_argument("--glossary", help="ITU glossary workbook (Term, Acronym, Alternate Names, "
@@ -181,11 +214,7 @@ def main():
         "meta": {"last_run": str(readme.get("Last run", "")), "built": date.today().isoformat(),
                  "snl_url": SNL_URL,
                  "notices_checked": (notices["fetched_date"].max() if len(notices) else None),
-                 "counts": {"networks": int(len(overview)),
-                            "notified": int(overview["total_notified"].fillna(0).sum()),
-                            "deployed": int(overview["total_deployed"].fillna(0).sum()),
-                            "pdfs": int(len(pdfs)),
-                            "satellite_rows": int(sats["in_latest_pdf"].fillna(False).astype(bool).sum())}},
+                 "stats": summary_stats(overview, sats, pdfs)},
         "tables": tables,
         "networks": network_links(networks, pdfs, notices),
         "pdfs": pdf_map,

@@ -92,6 +92,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .stat { background: var(--surface); padding: 12px 16px; display: grid; gap: 2px; }
 .stat .n { font: 700 28px/1.05 var(--f-display); font-variant-numeric: tabular-nums; }
 .stat .l { font-size: 12px; color: var(--muted); }
+.stat .l .h { border-bottom: 1px dashed var(--line); cursor: help; }
+.stat:hover .l .h, .stat:focus-visible .l .h { border-bottom-color: var(--muted); }
 
 /* Tabs */
 .tabs { display: flex; gap: 2px; overflow-x: auto; border-bottom: 1px solid var(--line); scrollbar-width: thin; }
@@ -126,11 +128,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .btn.on { border-color: var(--accent); background: var(--gold-soft); }
 #netLabel { max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .colmenu {
-  position: absolute; right: 0; top: 40px; z-index: 30; width: 270px; max-height: 360px; overflow: auto;
+  position: fixed; z-index: 40; width: min(270px, calc(100vw - 16px)); max-height: 360px; overflow: auto;
   background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow);
   padding: 8px; display: grid; gap: 2px; align-content: start;
 }
-.colmenu.netmenu { left: 0; right: auto; width: 250px; }
+.colmenu.netmenu { width: min(250px, calc(100vw - 16px)); }
 .colmenu .mhead { position: sticky; top: -8px; z-index: 1; margin: -8px -8px 2px; padding: 8px 8px 0;
   background: var(--surface); }
 .colmenu .find { width: 100%; height: 30px; margin-bottom: 4px; padding: 5px 8px; font: 13px var(--f-body);
@@ -291,14 +293,10 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt
 const fmtN = n => Number(n).toLocaleString("en-US");
 
 /* ---------- header ---------- */
-const m = DATA.meta, c = m.counts;
+const m = DATA.meta;
 $("#asof").innerHTML = `Data from pipeline run <b>${esc(m.last_run)}</b><br>Space Explorer notices checked <b>${esc(m.notices_checked || "never")}</b>`;
-$("#stats").innerHTML = [
-  [c.networks, "Space Network List entries"],
-  [c.notified, "Satellites notified (latest)"],
-  [c.deployed, "Satellites reported deployed"],
-  [c.pdfs, "Milestone PDFs read"],
-].map(([n, l]) => `<div class="stat"><span class="n">${fmtN(n)}</span><span class="l">${l}</span></div>`).join("");
+$("#stats").innerHTML = m.stats.map((x, i) =>
+  `<div class="stat" tabindex="0" data-pop="stat" data-p="${esc(JSON.stringify({ i }))}"><span class="n">${fmtN(x.n)}</span><span class="l"><span class="h">${esc(x.label)}</span></span></div>`).join("");
 $("#foot2").innerHTML = `Sources: <a href="${esc(m.snl_url)}" target="_blank" rel="noopener">ITU Res 35 Space Network List</a>, its milestone PDFs, and the ITU Space Explorer. Built ${esc(m.built)} by <code>build_dashboard.py</code> in the ESPL res35_pipeline.`;
 
 /* ---------- tabs ---------- */
@@ -473,6 +471,29 @@ $("#tbl thead").addEventListener("click", e => {
 });
 $("#tbl thead").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.closest("th")) e.target.closest("th").click(); });
 
+// Keep a dropdown fully on screen: open below its button, or above when there is more room
+// there, never taller than the room available (the list scrolls inside), and nudged sideways
+// so it never runs off the left or right edge.
+function placeMenu(menu, btn, align) {
+  const r = btn.getBoundingClientRect(), vw = innerWidth, vh = innerHeight, edge = 8, gap = 6;
+  menu.style.maxHeight = "";
+  const w = menu.offsetWidth, natural = Math.min(menu.scrollHeight + 2, 360);
+  const below = vh - r.bottom - gap - edge, above = r.top - gap - edge;
+  const down = below >= natural || below >= above;
+  const h = Math.max(120, Math.min(natural, down ? below : above));
+  let x = align === "right" ? r.right - w : r.left;
+  x = Math.min(Math.max(edge, x), vw - w - edge);
+  menu.style.maxHeight = h + "px";
+  menu.style.left = x + "px";
+  menu.style.top = (down ? r.bottom + gap : Math.max(edge, r.top - gap - h)) + "px";
+}
+function placeOpenMenus() {
+  if (!$("#netMenu").hidden) placeMenu($("#netMenu"), $("#netBtn"), "left");
+  if (!$("#colMenu").hidden) placeMenu($("#colMenu"), $("#colBtn"), "right");
+}
+addEventListener("scroll", placeOpenMenus, { passive: true });
+addEventListener("resize", placeOpenMenus);
+
 function closeMenus() {
   for (const [m, b] of [["#colMenu", "#colBtn"], ["#netMenu", "#netBtn"]]) { $(m).hidden = true; $(b).setAttribute("aria-expanded", "false"); }
 }
@@ -501,7 +522,8 @@ $("#netBtn").addEventListener("click", e => {
   menu.innerHTML = `<div class="mhead"><input type="search" class="find" id="netFind" placeholder="Find a network" aria-label="Find a network">` +
     `<div class="row"><button data-net="all">Select all</button><button data-net="none">Clear</button></div></div><div id="netItems">${netList()}</div>`;
   menu.hidden = false; $("#netBtn").setAttribute("aria-expanded", "true");
-  $("#netFind").focus();
+  placeMenu(menu, $("#netBtn"), "left");
+  $("#netFind").focus({ preventScroll: true });
 });
 $("#netMenu").addEventListener("click", e => {
   e.stopPropagation();
@@ -511,7 +533,7 @@ $("#netMenu").addEventListener("click", e => {
   $("#netItems").querySelectorAll("input").forEach(x => x.checked = netSel.has(x.value));
   netLabel(); stFor(cur).page = 0; render();
 });
-$("#netMenu").addEventListener("input", e => { if (e.target.id === "netFind") $("#netItems").innerHTML = netList(e.target.value); });
+$("#netMenu").addEventListener("input", e => { if (e.target.id === "netFind") { $("#netItems").innerHTML = netList(e.target.value); placeOpenMenus(); } });
 $("#netMenu").addEventListener("change", e => {
   const x = e.target; if (x.type !== "checkbox") return;
   x.checked ? netSel.add(x.value) : netSel.delete(x.value);
@@ -527,6 +549,7 @@ $("#colBtn").addEventListener("click", e => {
   menu.innerHTML = `<div class="mhead"><div class="row"><button data-all="1">Show all</button><button data-all="0">Defaults</button></div></div>` +
     cur.columns.map((c, i) => `<label><input type="checkbox" id="col-${cur.id}-${i}" value="${esc(c)}" ${s.visible.includes(c) ? "checked" : ""} ${i === 0 ? "disabled" : ""}> ${esc(c)}</label>`).join("");
   menu.hidden = false; $("#colBtn").setAttribute("aria-expanded", "true");
+  placeMenu(menu, $("#colBtn"), "right");
 });
 $("#colMenu").addEventListener("click", e => e.stopPropagation());
 $("#colMenu").addEventListener("change", e => {
@@ -588,6 +611,10 @@ function content(kind, p) {
     if (d.source_url) h += go(d.source_url, esc(d.source_name || "Source"), new URL(d.source_url).hostname.replace(/^www\./, ""));
     else if (d.source_name) h += `<p class="note">Source: ${esc(d.source_name)}</p>`;
     return h + `<p class="note">Click the column name to sort.</p>`;
+  }
+  if (kind === "stat") {
+    const x = m.stats[p.i];
+    return `<div class="k">Summary</div><h3>${fmtN(x.n)} ${esc(x.label.toLowerCase())}</h3><p>${esc(x.note)}</p>`;
   }
   if (kind === "net") {
     const n = DATA.networks[p.k];
