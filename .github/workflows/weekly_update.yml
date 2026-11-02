@@ -43,6 +43,15 @@ jobs:
       - name: Run the pipeline
         run: python run_pipeline.py
 
+      # Looks up each network's notice IDs for the ITU Space Explorer links. If the ITU site
+      # can't be reached, this step is marked with a warning and last week's links are kept.
+      - name: Update ITU Space Explorer links
+        continue-on-error: true
+        run: python fetch_space_explorer.py
+
+      - name: Build the dashboard
+        run: python build_dashboard.py
+
       - name: Save results to the repository
         run: |
           git config user.name "res35-bot"

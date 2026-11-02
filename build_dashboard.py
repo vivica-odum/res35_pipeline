@@ -2,13 +2,14 @@
 
 Reads   output/res35_main.xlsx              (the pipeline's main workbook)
         docs/column_definitions.csv         (header tooltips)
+        docs/ITU_glossary_Res35.xlsx        (Glossary tab, if the file is there)
         data/space_explorer_notices.csv     (Space Explorer links; see fetch_space_explorer.py)
         templates/dashboard_template.html   (the page layout and code)
 Writes  output/res35_dashboard.html         (open it in any web browser)
 
 Usage:
     python build_dashboard.py
-    python build_dashboard.py --glossary path/to/ITU_glossary_Res35.xlsx   # adds a Glossary tab
+    python build_dashboard.py --glossary other_glossary.xlsx   # use a different glossary file
 
 Hovering a column name shows what the column means and where it comes from.
 Hovering a network name, PDF ID, milestone or notice ID shows links to the
@@ -28,6 +29,7 @@ import fetch_space_explorer as se
 HERE = Path(__file__).parent
 MAIN = HERE / "output" / "res35_main.xlsx"
 DEFS = HERE / "docs" / "column_definitions.csv"
+GLOSSARY = HERE / "docs" / "ITU_glossary_Res35.xlsx"
 TEMPLATE = HERE / "templates" / "dashboard_template.html"
 LOGO = HERE / "templates" / "espl_logo.png"           # ESPL logo, black on transparent
 OUT = HERE / "output" / "res35_dashboard.html"
@@ -167,8 +169,9 @@ def summary_stats(overview, sats, pdfs):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    ap.add_argument("--glossary", help="ITU glossary workbook (Term, Acronym, Alternate Names, "
-                                       "Definition, Name of Source, Source) to add as a tab")
+    ap.add_argument("--glossary", default=str(GLOSSARY) if GLOSSARY.exists() else None,
+                    help="ITU glossary workbook (Term, Acronym, Alternate Names, Definition, "
+                         "Name of Source, Source) shown as the Glossary tab")
     ap.add_argument("--out", default=str(OUT))
     ap.add_argument("--bare", action="store_true",
                     help="leave out the <html>/<head> wrapper (for publishing as a claude.ai artifact)")
