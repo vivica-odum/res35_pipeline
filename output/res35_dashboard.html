@@ -559,12 +559,26 @@ function content(kind, p) {
   return "";
 }
 
+// Put the card beside the hovered element, never on top of it: below or above (whichever
+// has more room), shrinking it to fit; if neither has room, to the right or left.
 function place(el) {
   const r = el.getBoundingClientRect();
-  const w = pop.offsetWidth, h = pop.offsetHeight, vw = innerWidth, vh = innerHeight;
-  let x = Math.min(Math.max(8, r.left), vw - w - 8);
-  let y = r.bottom + 6;
-  if (y + h > vh - 8) y = Math.max(8, r.top - h - 6);
+  const vw = innerWidth, vh = innerHeight, gap = 6, edge = 8;
+  pop.style.maxHeight = "";
+  const w = pop.offsetWidth, natural = pop.offsetHeight;
+  const below = vh - r.bottom - gap - edge, above = r.top - gap - edge;
+  let x, y, room;
+  if (Math.max(below, above) >= Math.min(natural, 140)) {
+    x = Math.min(Math.max(edge, r.left), vw - w - edge);
+    if (below >= natural || below >= above) { room = below; y = r.bottom + gap; }
+    else { room = above; y = r.top - gap - Math.min(natural, room); }
+  } else {
+    const right = vw - r.right - gap - edge, left = r.left - gap - edge;
+    x = right >= w || right >= left ? r.right + gap : Math.max(edge, r.left - gap - w);
+    room = vh - 2 * edge;
+    y = Math.min(Math.max(edge, r.top), vh - edge - Math.min(natural, room));
+  }
+  pop.style.maxHeight = Math.max(80, Math.min(natural, room)) + "px";
   pop.style.left = x + "px"; pop.style.top = y + "px";
 }
 
