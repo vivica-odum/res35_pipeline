@@ -142,7 +142,7 @@ def parse_header(pages):
     header["total_deployed"] = int(m.group(2)) if m else None
 
     # Which layout? Newer PDFs have the BR134 unique satellite id column.
-    header["layout"] = "new (BR134)" if "BR134" in everything else "old"
+    header["pdf_layout"] = "new (BR134)" if "BR134" in everything else "old"
     return header
 
 
@@ -230,24 +230,24 @@ SECTION_TITLES = {
 ROW_PATTERNS = {
     # M 121500130 UC263Y R 121766085 14000 - 14500 27.12.2019 M1 27.06.2023 Y 27.06.2026
     "groups": re.compile(
-        rf"^\s*(?P<action_code>[A-Z])\s+(?P<br6a_br6b_id_no>\d{{9}})\s+(?P<beam>\S+)\s+"
+        rf"^\s*(?P<action_code>[A-Z])\s+(?P<br6a_br6b_id_no>\d{{9}})\s+(?P<beam_designation>\S+)\s+"
         rf"(?P<emi_rcp>[ER])\s+(?P<group_id>\d+)\s+"
         rf"(?P<freq_min_mhz>{NUM})\s*-\s*(?P<freq_max_mhz>{NUM})\s+"
-        rf"(?P<date_brought_into_use>{DATE})\s+(?P<current_milestone>M\d)\s+"
-        rf"(?P<milestone_expiry>{DATE})\s+(?P<criteria_met>[YN])"
-        rf"(?:\s+(?P<next_milestone_expiry>{DATE}))?\s*$"
+        rf"(?P<date_of_bringing_into_use>{DATE})\s+(?P<current_milestone>M\d)\s+"
+        rf"(?P<milestone_period_expiry>{DATE})\s+(?P<milestone_criteria_met>[YN])"
+        rf"(?:\s+(?P<next_milestone_period_expiry>{DATE}))?\s*$"
     ),
     # 125500135  1  87.9  1200  1200  0  49  7
     "planes": re.compile(
-        rf"^\s*(?P<br6a_br6b_id_no>\d{{9}})\s+(?P<plane_id>\d+)\s+(?P<inclination_deg>{NUM})\s+"
-        rf"(?P<apogee_km>{NUM})\s+(?P<perigee_km>{NUM})\s+(?P<arg_perigee_deg>{NUM})\s+"
+        rf"^\s*(?P<br6a_br6b_id_no>\d{{9}})\s+(?P<orbital_plane_id>\d+)\s+(?P<inclination_deg>{NUM})\s+"
+        rf"(?P<apogee_altitude_km>{NUM})\s+(?P<perigee_altitude_km>{NUM})\s+(?P<arg_perigee_deg>{NUM})\s+"
         rf"(?P<stations_notified>\d+)\s+(?P<stations_deployed>\d+)\s*$"
     ),
     # Usual:   1  10700  12700  882  88  88  M1/YES          (minimum to meet + milestone/met)
     # Notes:   1  17702.5  17827.5  288  1  28  M1 /NO (See Note)
     # Oldest:  1  17800  18600  24  1  4.17%  Y              (percentage deployed + Y/N)
     "bands": re.compile(
-        rf"^\s*(?P<band_id>\d+)\s+(?P<freq_min_mhz>{NUM})\s+(?P<freq_max_mhz>{NUM})\s+"
+        rf"^\s*(?P<freq_band_id>\d+)\s+(?P<freq_min_mhz>{NUM})\s+(?P<freq_max_mhz>{NUM})\s+"
         rf"(?P<stations_notified>\d+)\s+(?P<stations_deployed>\d+)\s+"
         rf"(?:(?P<min_to_meet>\d+)\s+(?P<milestone>M\d)\s*/\s*(?P<met>YES|NO)"
         rf"(?:\s*\((?P<note>[^)]*)\))?"
@@ -256,26 +256,26 @@ ROW_PATTERNS = {
     # 1  ARIANESPACE  SOYOUZ  BAIKONUR  KAZ  063E15 36  45N37 48  06.02.2020
     # (provider / vehicle / facility are split afterwards, see parse_launch_middle)
     "launches": re.compile(
-        rf"^\s*(?P<launch_id>\d+)\s+(?P<middle>.+?)\s+(?P<country>[A-Z]{{2,3}})\s+"
-        rf"(?P<longitude>\d{{3}}[EW]\d{{2}} \d{{2}})\s+(?P<latitude>\d{{2,3}}[NS]\d{{2}} \d{{2}})\s+"
+        rf"^\s*(?P<launch_id>\d+)\s+(?P<middle>.+?)\s+(?P<launch_country>[A-Z]{{2,3}})\s+"
+        rf"(?P<launch_longitude>\d{{3}}[EW]\d{{2}} \d{{2}})\s+(?P<launch_latitude>\d{{2,3}}[NS]\d{{2}} \d{{2}})\s+"
         rf"(?P<launch_date>{DATE})\s*$"
     ),
     # old: 1  1  Starlink-1007  86  550  550  53.00  0  1,2
     # new: 1  1  SL0013  123500094_18_1  18  1227.56  1210.06  88.56  97  1,2,...,12
     "satellites": re.compile(
-        rf"^\s*(?P<station_id>\d+)\s+(?P<launch_id>\d+)\s+(?P<satellite_name>.+?)\s+"
-        rf"(?:(?P<itu_sat_id>\d+_\d+_\d+)\s+)?(?P<plane_id>\d+)\s+"
-        rf"(?P<apogee_km>{NUM})\s+(?P<perigee_km>{NUM})\s+(?P<inclination_deg>{NUM})\s+"
-        rf"(?P<arg_perigee_deg>{NUM})\s+(?P<band_ids>\d+(?:\s*,\s*\d+)*)\s*$"
+        rf"^\s*(?P<space_station_id>\d+)\s+(?P<launch_id>\d+)\s+(?P<satellite_name>.+?)\s+"
+        rf"(?:(?P<itu_sat_id>\d+_\d+_\d+)\s+)?(?P<orbital_plane_id>\d+)\s+"
+        rf"(?P<apogee_altitude_km>{NUM})\s+(?P<perigee_altitude_km>{NUM})\s+(?P<inclination_deg>{NUM})\s+"
+        rf"(?P<arg_perigee_deg>{NUM})\s+(?P<freq_band_ids>\d+(?:\s*,\s*\d+)*)\s*$"
     ),
 }
 
-DATE_COLUMNS = {"date_brought_into_use", "milestone_expiry",
-                "next_milestone_expiry", "launch_date"}
-TEXT_COLUMNS = {"action_code", "br6a_br6b_id_no", "beam", "emi_rcp", "group_id",
-                "current_milestone", "criteria_met", "milestone", "met", "met_yn", "note",
-                "country", "longitude", "latitude", "satellite_name",
-                "itu_sat_id", "band_ids", "middle"}
+DATE_COLUMNS = {"date_of_bringing_into_use", "milestone_period_expiry",
+                "next_milestone_period_expiry", "launch_date"}
+TEXT_COLUMNS = {"action_code", "br6a_br6b_id_no", "beam_designation", "emi_rcp", "group_id",
+                "current_milestone", "milestone_criteria_met", "milestone", "met", "met_yn", "note",
+                "launch_country", "launch_longitude", "launch_latitude", "satellite_name",
+                "itu_sat_id", "freq_band_ids", "middle"}
 
 LAUNCH_HEADINGS = ("BR34", "BR35", "BR38", "BR39")   # provider, vehicle, facility, country
 
@@ -310,10 +310,10 @@ def split_launch_by_position(page_words, launch_id, launch_date):
         cell_words = sorted((w for w in page_words
                              if abs(w["top"] - row_top) <= 8 and first["x1"] < centre(w) < cuts[2]),
                             key=lambda w: (round(w["top"]), w["x0"]))
-        cols = {"provider": [], "vehicle": [], "facility": []}
+        cols = {"launch_vehicle_provider": [], "launch_vehicle": [], "launch_facility": []}
         for w in cell_words:
             c = centre(w)
-            key = "provider" if c < cuts[0] else "vehicle" if c < cuts[1] else "facility"
+            key = "launch_vehicle_provider" if c < cuts[0] else "launch_vehicle" if c < cuts[1] else "launch_facility"
             cols[key].append(w["text"])
         return {k: " ".join(v) or None for k, v in cols.items()}
     return None
@@ -327,12 +327,12 @@ def parse_launch_middle(text, page_words, launch_id, launch_date):
     """
     parts = re.split(r"\s{2,}", text.strip())
     if len(parts) == 3:
-        return {"provider": parts[0], "vehicle": parts[1], "facility": parts[2],
+        return {"launch_vehicle_provider": parts[0], "launch_vehicle": parts[1], "launch_facility": parts[2],
                 "parse_warning": None}
     by_position = split_launch_by_position(page_words, launch_id, launch_date)
     if by_position:
         return {**by_position, "parse_warning": None}
-    return {"provider": None, "vehicle": None, "facility": None,
+    return {"launch_vehicle_provider": None, "launch_vehicle": None, "launch_facility": None,
             "parse_warning": f"could not split provider/vehicle/facility: '{text.strip()}'"}
 
 
@@ -351,7 +351,7 @@ def clean_row(table, match, page_words=None):
         row.update(parse_launch_middle(row.pop("middle"), page_words or [],
                                        row["launch_id"], row["launch_date"]))
     if table == "satellites":
-        row["band_ids"] = row["band_ids"].replace(" ", "")      # "1, 2, 3" -> "1,2,3"
+        row["freq_band_ids"] = row["freq_band_ids"].replace(" ", "")      # "1, 2, 3" -> "1,2,3"
     if table == "bands" and row.get("met_yn"):                  # oldest layout: Y / N
         row["met"] = "YES" if row["met_yn"] == "Y" else "NO"
     if table == "bands":
@@ -468,7 +468,7 @@ if __name__ == "__main__":
         print(f"\n=== {path}")
         for key in ["network_name", "adm", "special_section", "milestone", "brific_number",
                     "brific_date", "received_date", "identification_number",
-                    "total_notified", "total_deployed", "layout"]:
+                    "total_notified", "total_deployed", "pdf_layout"]:
             print(f"  {key:18} {h[key]}")
         for name in SECTION_TITLES:
             print(f"  {name:18} {len(result[name])} rows")

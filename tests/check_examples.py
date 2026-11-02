@@ -44,8 +44,8 @@ check("STEAM-1 totals", (h["total_notified"], h["total_deployed"]), (4408, 442))
 check("STEAM-1 satellites", len(r["satellites"]), 442)
 check("STEAM-1 min to meet M1 (rounded down)", r["bands"]["min_to_meet"].tolist(), [440, 440])
 first_launch = r["launches"].iloc[0]
-check("STEAM-1 launch 1", (first_launch["provider"], first_launch["vehicle"],
-                           first_launch["facility"], first_launch["launch_date"]),
+check("STEAM-1 launch 1", (first_launch["launch_vehicle_provider"], first_launch["launch_vehicle"],
+                           first_launch["launch_facility"], first_launch["launch_date"]),
       ("SPACEX", "FALCON V9", "CAPE CANAVERAL", date(2019, 11, 11)))
 check("STEAM-1 first satellite", r["satellites"].iloc[0]["satellite_name"], "Starlink-1007")
 check("STEAM-1 problems", r["problems"], [])
@@ -59,14 +59,14 @@ mcsat_names = set(r["satellites"]["satellite_name"])
 
 # --- THEO M1 (new layout) -------------------------------------------------------
 r = parse_pdf(PDFS / "RES350019M1.pdf")
-check("THEO layout", r["header"]["layout"], "new (BR134)")
+check("THEO layout", r["header"]["pdf_layout"], "new (BR134)")
 check("THEO totals", (r["header"]["total_notified"], r["header"]["total_deployed"]), (882, 88))
-check("THEO bands not met", r["bands"].query("met == 'NO'")["band_id"].tolist(), [5, 7, 9, 11])
+check("THEO bands not met", r["bands"].query("met == 'NO'")["freq_band_id"].tolist(), [5, 7, 9, 11])
 sl13 = r["satellites"].query("satellite_name == 'SL0013'").iloc[0]
-check("THEO SL0013", (sl13["itu_sat_id"], sl13["plane_id"], sl13["apogee_km"], sl13["band_ids"]),
+check("THEO SL0013", (sl13["itu_sat_id"], sl13["orbital_plane_id"], sl13["apogee_altitude_km"], sl13["freq_band_ids"]),
       ("123500094_18_1", 18, 1227.56, "1,2,3,4,5,6,7,8,9,10,11,12"))
 check("THEO station ids restart per launch",
-      int(r["satellites"].duplicated(["launch_id", "station_id"]).sum()), 0)
+      int(r["satellites"].duplicated(["launch_id", "space_station_id"]).sum()), 0)
 check("THEO problems", r["problems"], [])
 check("No satellite in both MCSAT LEO and THEO", sorted(mcsat_names & set(r["satellites"]["satellite_name"])), [])
 
@@ -87,16 +87,16 @@ if r:
 r = maybe("RES350001")          # vehicle cell wraps onto three lines
 if r:
     l1 = r["launches"].iloc[0]
-    check("USCSID-P launch split by position", (l1["provider"], l1["vehicle"], l1["facility"]),
+    check("USCSID-P launch split by position", (l1["launch_vehicle_provider"], l1["launch_vehicle"], l1["launch_facility"]),
           ("US GOVERNMENT", "US GOVERNMENT VEHICL", "CAPE CANAVERAL"))
 r = maybe("RES350016")          # columns one space apart
 if r:
     l1 = r["launches"].iloc[0]
-    check("STEAM-1 M0 launch split by position", (l1["provider"], l1["vehicle"], l1["facility"]),
+    check("STEAM-1 M0 launch split by position", (l1["launch_vehicle_provider"], l1["launch_vehicle"], l1["launch_facility"]),
           ("SPACEX", "FALCON 9 V1.1", "CAPE CANAVERAL"))
 r = maybe("RES350002")          # band lists written "1, 2, 3"
 if r:
-    check("MCSAT LEO M0 satellites", (len(r["satellites"]), r["satellites"].iloc[0]["band_ids"]),
+    check("MCSAT LEO M0 satellites", (len(r["satellites"]), r["satellites"].iloc[0]["freq_band_ids"]),
           (38, "1,2,3,4,5,6"))
 r = maybe("RES350008M2")        # ITU typo: data pages say STEAM-2
 if r:
@@ -131,6 +131,14 @@ check("bundle M0 url", ms.iloc[0]["pdf_url"],
 check("bundle M1 url", ms.iloc[1]["pdf_url"],
       "https://www.itu.int/net/ITU-R/space/documents/RES35/3008/RES35/RES350016M1.pdf")
 check("bundle statuses", ms["status_clean"].tolist(), ["Met", "Met", "As Received", "Pending"])
+check("special section as printed", ms["special_section"].tolist()[:2], ["RES35/16", "RES35/16 MOD-1"])
+check("STEAM-1 milestone progress", nets["milestone_progress"].iloc[0], "At least one milestone met")
+
+# Snapshots saved before the November 2026 renaming must still compare cleanly
+from fetch_snl import OLD_COLUMN_NAMES, compare_snapshots  # noqa: E402
+back = {new: old for old, new in OLD_COLUMN_NAMES.items()}
+check("old-name snapshot gives no false changes",
+      len(compare_snapshots(nets.rename(columns=back), ms.rename(columns=back), nets, ms, "2026-11-02")), 0)
 
 # --- ITU country codes ----------------------------------------------------------------
 from fetch_snl import country_name, load_country_names  # noqa: E402
@@ -144,10 +152,12 @@ check("Unknown ITU code is flagged", country_name("QQQ", names), "unknown code: 
 nets, ms = build_tables(read_snl_csv(HERE / "RES35_Space_Network_List.csv"), today=date(2026, 10, 8))
 check("CSV networks / unique keys", (len(nets), nets["network_key"].is_unique), (40, True))
 dated = ms[ms["status_raw"].str.match(r"\d\d\.\d\d\.\d{4}")]
-check("Every date on the page = computed deadline",
-      int((dated["status_raw"].map(to_date) != dated["deadline"]).sum()), 0)
+check("Every date on the page = computed milestone period expiry",
+      int((dated["status_raw"].map(to_date) != dated["milestone_period_expiry"]).sum()), 0)
 sleip = ms.query("network_name == 'SLEIPNER-1'")["status_clean"].tolist()
 check("SLEIPNER-1 statuses", sleip, ["Skipped (completed early)"] * 3 + ["Met"])
+check("SLEIPNER-1 milestone progress",
+      nets.query("network_name == 'SLEIPNER-1'")["milestone_progress"].iloc[0], "100% deployed at first report")
 
 print("\nALL PASSED" if failures == 0 else f"\n{failures} FAILED")
 sys.exit(1 if failures else 0)

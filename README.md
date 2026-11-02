@@ -78,6 +78,7 @@ and the in-between Wednesday catches SNL changes such as new "As Received" statu
 | `parse_pdf.py` | Reads one milestone PDF into tables. `python parse_pdf.py some.pdf` prints a summary |
 | `run_pipeline.py` | Runs everything and writes the workbooks |
 | `explore_results.ipynb` | Runs the pipeline from Jupyter and opens the results |
+| `docs/column_definitions.csv` | What every column means, with its ITU label, data item code and source. Shown in the workbook as the Column definitions sheet. Edit this file to change a definition |
 | `itu_country_codes.csv` | ITU country symbols to English names (D = Germany, G = United Kingdom, GUF = French Guiana). Add a row if the pipeline warns about an unknown code |
 | `tests/check_examples.py` | Known answers from STEAM-1, MCSAT LEO and THEO. Run after any code change |
 | `.github/workflows/weekly_update.yml` | The weekly schedule |

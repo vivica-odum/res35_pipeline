@@ -42,6 +42,7 @@ PARSED_DIR = DATA / "parsed"       # cached parse results, so PDFs are read once
 SNAP_DIR = DATA / "snapshots"      # one networks + milestones CSV per run
 RAW_DIR = DATA / "raw"             # dated copies of bundle.js
 OUT_DIR = HERE / "output"
+DOCS_DIR = HERE / "docs"           # column_definitions.csv (edit by hand to change a definition)
 CHANGE_LOG = DATA / "change_log.csv"
 PARSER_CODE = (HERE / "parse_pdf.py").read_bytes()   # a parser fix re-parses every PDF
 
@@ -186,10 +187,10 @@ def build_overview(networks, milestones, pdfs):
     view = view.reset_index()
     if "bureau_notes" not in view:
         view["bureau_notes"] = None
-    cols = ["network_name", "adm", "adm_country", "igso", "clock_start", "M0", "M1", "M2", "M3",
-            "resolves_19", "notified", "deployed", "deployed_pct", "completion_type",
+    cols = ["network_name", "adm", "adm_country", "igso", "seven_year_limit", "M0", "M1", "M2", "M3",
+            "resolves_19", "total_notified", "total_deployed", "pct_deployed", "milestone_progress",
             "highest_milestone_met", "bureau_notes", "latest_pdf_url", "network_key"]
-    return view[cols].sort_values(["network_name", "clock_start"])
+    return view[cols].sort_values(["network_name", "seven_year_limit"])
 
 
 def latest_pdf_per_network(pdfs):
@@ -210,55 +211,53 @@ def arrange_satellites(satellites, pdfs):
 
 
 def build_satellite_view(pdfs, satellites, launches, planes):
-    """One row per satellite per PDF, with its launch and its FILED plane next to it,
-    plus the difference between reported and filed orbit (for the Res 8 work)."""
+    """One row per satellite per PDF, with its launch and its NOTIFIED orbital plane next
+    to it, plus the difference between reported and notified orbit (for the Res 8 work)."""
     if satellites.empty:
         return satellites
     sv = satellites.merge(pdfs[["pdf_id", "network_key", "network_name", "adm", "milestone"]],
                           on="pdf_id", how="left")
-    sv = sv.merge(launches.drop(columns=["parse_warning"]).rename(columns={
-                      "country": "launch_country", "country_name": "launch_country_name",
-                      "provider": "launch_provider",
-                      "vehicle": "launch_vehicle", "facility": "launch_facility",
-                      "longitude": "launch_longitude", "latitude": "launch_latitude"}),
-                  on=["pdf_id", "launch_id"], how="left")
-    filed = planes[["pdf_id", "plane_id", "inclination_deg", "apogee_km", "perigee_km"]] \
-        .rename(columns={"inclination_deg": "filed_inclination_deg",
-                         "apogee_km": "filed_apogee_km", "perigee_km": "filed_perigee_km"})
-    sv = sv.merge(filed, on=["pdf_id", "plane_id"], how="left")
-    sv["apogee_minus_filed_km"] = (sv["apogee_km"] - sv["filed_apogee_km"]).round(2)
-    sv["perigee_minus_filed_km"] = (sv["perigee_km"] - sv["filed_perigee_km"]).round(2)
-    sv["inclination_minus_filed_deg"] = (sv["inclination_deg"] - sv["filed_inclination_deg"]).round(3)
+    sv = sv.merge(launches.drop(columns=["parse_warning"]), on=["pdf_id", "launch_id"], how="left")
+    notified = planes[["pdf_id", "orbital_plane_id", "inclination_deg", "apogee_altitude_km",
+                       "perigee_altitude_km"]] \
+        .rename(columns={"inclination_deg": "notified_inclination_deg",
+                         "apogee_altitude_km": "notified_apogee_altitude_km",
+                         "perigee_altitude_km": "notified_perigee_altitude_km"})
+    sv = sv.merge(notified, on=["pdf_id", "orbital_plane_id"], how="left")
+    sv["apogee_minus_notified_km"] = (sv["apogee_altitude_km"] - sv["notified_apogee_altitude_km"]).round(2)
+    sv["perigee_minus_notified_km"] = (sv["perigee_altitude_km"] - sv["notified_perigee_altitude_km"]).round(2)
+    sv["inclination_minus_notified_deg"] = (sv["inclination_deg"] - sv["notified_inclination_deg"]).round(3)
     sv["in_latest_pdf"] = sv["pdf_id"].isin(set(latest_pdf_per_network(pdfs)))
     first = ["satellite_name", "network_name", "adm", "milestone", "brific_date", "received_date",
-             "itu_sat_id", "launch_date", "launch_provider", "launch_vehicle", "launch_facility",
-             "launch_country", "launch_country_name", "plane_id", "apogee_km", "filed_apogee_km",
-             "apogee_minus_filed_km", "perigee_km", "filed_perigee_km",
-             "perigee_minus_filed_km", "inclination_deg", "filed_inclination_deg",
-             "inclination_minus_filed_deg", "arg_perigee_deg", "band_ids", "in_latest_pdf"]
+             "itu_sat_id", "launch_date", "launch_vehicle_provider", "launch_vehicle", "launch_facility",
+             "launch_country", "launch_country_name", "orbital_plane_id",
+             "apogee_altitude_km", "notified_apogee_altitude_km", "apogee_minus_notified_km",
+             "perigee_altitude_km", "notified_perigee_altitude_km", "perigee_minus_notified_km",
+             "inclination_deg", "notified_inclination_deg", "inclination_minus_notified_deg",
+             "arg_perigee_deg", "freq_band_ids", "in_latest_pdf"]
     return sv[first + [c for c in sv.columns if c not in first]]
 
 
 def build_shared_satellites(sat_view):
     """Satellite names that appear under MORE THAN ONE network (latest PDFs only)."""
     if sat_view.empty:
-        return pd.DataFrame(columns=["satellite_name", "networks", "count"])
+        return pd.DataFrame(columns=["satellite_name", "networks", "network_count"])
     latest = sat_view[sat_view["in_latest_pdf"]]
     g = latest.groupby("satellite_name")["network_name"].agg(lambda s: sorted(set(s)))
     shared = g[g.apply(len) > 1]
     return pd.DataFrame({"satellite_name": shared.index,
                          "networks": shared.apply(", ".join).values,
-                         "count": shared.apply(len).values})
+                         "network_count": shared.apply(len).values})
 
 
 def split_band_links(satellites):
     """'1,2,3' in one cell -> three rows (long format), for the frequency add-on."""
     if satellites.empty:
         return satellites
-    s = satellites[["pdf_id", "launch_id", "station_id", "satellite_name", "band_ids"]].copy()
-    s["band_id"] = s["band_ids"].str.split(",")
-    s = s.explode("band_id").drop(columns="band_ids")
-    s["band_id"] = s["band_id"].astype(int)
+    s = satellites[["pdf_id", "launch_id", "space_station_id", "satellite_name", "freq_band_ids"]].copy()
+    s["freq_band_id"] = s["freq_band_ids"].str.split(",")
+    s = s.explode("freq_band_id").drop(columns="freq_band_ids")
+    s["freq_band_id"] = s["freq_band_id"].astype(int)
     return s
 
 
@@ -275,27 +274,30 @@ README_ROWS = [
     ("", ""),
     ("SHEETS", ""),
     ("Overview", "One row per network: the SNL page, cleaned. Start here."),
-    ("Satellites view", "One row per deployed satellite per PDF, with launch and filed orbital plane "
-                        "joined in, plus reported-minus-filed orbit differences. "
+    ("Satellites view", "One row per deployed satellite per PDF, with launch and notified orbital plane "
+                        "joined in, plus reported-minus-notified orbit differences. "
                         "Filter in_latest_pdf = TRUE for one row per satellite per network."),
     ("Shared satellites", "Satellite names listed under more than one network (latest PDFs)."),
     ("Change log", "Every change detected between runs (status changes, new PDFs, counts)."),
     ("Checks", "Parsing problems per PDF. Empty problems = the PDF's totals all add up."),
     ("networks ... satellites", "The core tables the views are built from (one fact stored once)."),
+    ("Column definitions", "Every column: meaning, ITU label and data item code, and source."),
     ("", ""),
     ("KEYS", ""),
-    ("network_key", "network name | ADM | clock start. Name + ADM alone is not unique "
+    ("network_key", "network name | ADM | 7 year limit date. Name + ADM alone is not unique "
                     "(e.g. L5 and HIBLEO-2FL2 appear twice)."),
     ("pdf_id", "PDF file name without .pdf, e.g. RES350016M1. Every PDF-derived row carries it."),
-    ("Satellite row", "pdf_id + launch_id + station_id (station ids restart at 1 for each launch)."),
+    ("Satellite row", "pdf_id + launch_id + space_station_id (space station ids restart at 1 for each launch)."),
     ("", ""),
-    ("COLUMNS", ""),
-    ("clock_start", "'7 year limit / 01.01.2021' on the SNL page: end of the 7-year bringing-into-use "
-                    "period, or 1 Jan 2021 if earlier. M0/M1/M2/M3 deadlines are +0/2/5/7 years."),
+    ("COLUMNS", "Full list on the 'Column definitions' sheet. Most-used ones:"),
+    ("seven_year_limit", "'7 year limit / 01.01.2021' on the SNL page: end of the 7-year regulatory period "
+                         "for bringing into use (RR No. 11.44), or 1 Jan 2021 if earlier. Milestone periods "
+                         "expire +0/2/5/7 years later (M0/M1/M2/M3); reports are due 30 days after that."),
     ("adm / adm_country", "ITU symbol of the responsible administration and its English name. ITU symbols "
                           "are not ISO codes: D = Germany, G = United Kingdom, F = France, HOL = Netherlands, "
                           "E = Spain. Translations come from itu_country_codes.csv."),
-    ("igso", "Intergovernmental satellite organization that filed (field ntwk_org), usually empty."),
+    ("igso", "SNL heading 'IGSO' = intergovernmental satellite organization (field ntwk_org), not "
+             "inclined geosynchronous orbit. Usually empty."),
     ("resolves_19", "SNL 'Resolves 19' column (field POST): post-milestone deployment reports under "
                     "resolves 19 of Resolution 35. The first are due 1 Feb 2032, so it is empty for now."),
     ("identification_number (pdfs)", "'Identification number' exactly as printed on page 1 of the PDF "
@@ -307,13 +309,16 @@ README_ROWS = [
                               "from the page-1 IDs: it points to the filing whose orbits are listed, and "
                               "newer PDFs' itu_sat_id values start with it. Likely the ITU notice ID "
                               "(to be confirmed). Can change between milestones."),
-    ("min_to_meet (bands)", "Bureau's minimum deployed stations for the milestone; 10% / 50% / 100% "
+    ("min_to_meet (bands)", "Bureau's minimum deployed space stations for the milestone; 10% / 50% / 100% "
                             "of notified, rounded DOWN (STEAM-1 M1: 4408 -> 440)."),
     ("bureau_notes", "English text of any note the Bureau printed in a PDF. Two kinds so far: a Radio "
                      "Regulations Board waiver under resolves 12 (3ECOM-1 and 3ECOM-3 at M1; the band table "
                      "says 'See Note'), and L5's note that a publication covered only some frequency bands. "
                      "Shown on the pdfs, Checks and Overview sheets."),
     ("note (bands)", "'See Note' exactly as printed in the band table; the note itself is in bureau_notes."),
+    ("apogee / perigee", "Altitudes above the Earth's surface in km (ITU data items A.4.b.4.d/e), not "
+                         "orbital radii. notified_* = the notified orbital plane from the planes sheet."),
+    ("milestone_progress", "100% deployed at first report / At least one milestone met / No milestone met yet."),
     ("Dates", "All dates converted from the ITU's day.month.year to real dates."),
     ("", ""),
     ("STATUS LABELS (status_clean)", ""),
@@ -321,8 +326,8 @@ README_ROWS = [
                                       "the milestone and some did not (see bands sheet)."),
     ("Not Met, resolves 12 applies", "As shown on the SNL page."),
     ("As Received", "Submitted to the Bureau but not yet published; no regulatory status, no PDF yet."),
-    ("Pending", "The page shows a deadline that is still in the future."),
-    ("Deadline passed, no status shown", "The page still shows the deadline date although it has passed."),
+    ("Pending", "The page shows a milestone period expiry date that is still in the future."),
+    ("Deadline passed, no status shown", "The page still shows the expiry date although it has passed."),
     ("Skipped (completed early)", "Blank on the page because a later milestone was already Met "
                                   "(system fully deployed early). Not an ITU finding."),
     ("Blank", "Blank on the page for any other reason."),
@@ -361,7 +366,7 @@ def write_workbook(path, sheets, readme_rows=None):
                     for c in ws[letter][1:]:
                         if c.value:
                             c.hyperlink, c.style = c.value, "Hyperlink"
-                if cell.value and any(k in str(cell.value) for k in ("date", "deadline", "clock_start")):
+                if cell.value and any(k in str(cell.value) for k in ("date", "expiry", "seven_year_limit")):
                     for c in ws[letter][1:]:
                         c.number_format = "yyyy-mm-dd"
 
@@ -409,30 +414,39 @@ def main():
     if "adm" in pdfs:
         pdfs.insert(pdfs.columns.get_loc("adm") + 1, "adm_country",
                     pdfs["adm"].map(lambda c: fetch_snl.country_name(c, names)))
-    if "country" in launches:
-        launches.insert(launches.columns.get_loc("country") + 1, "country_name",
-                        launches["country"].map(lambda c: fetch_snl.country_name(c, names)))
+    if "launch_country" in launches:
+        launches.insert(launches.columns.get_loc("launch_country") + 1, "launch_country_name",
+                        launches["launch_country"].map(lambda c: fetch_snl.country_name(c, names)))
+        first = ["pdf_id", "launch_id", "launch_date", "launch_vehicle_provider", "launch_vehicle",
+                 "launch_facility", "launch_country", "launch_country_name"]
+        launches = launches[first + [c for c in launches.columns if c not in first]]
     unknown = sorted({v.split(": ")[1] for df, col in [(networks, "adm_country"), (pdfs, "adm_country"),
-                                                       (launches, "country_name")] if col in df
+                                                       (launches, "launch_country_name")] if col in df
                       for v in df[col] if str(v).startswith("unknown code")})
     if unknown:
         print(f"  note: unknown ITU country code(s) {unknown}: add them to itu_country_codes.csv")
     overview = build_overview(networks, milestones, pdfs)
     sat_view = build_satellite_view(pdfs, satellites, launches, planes)
     shared = build_shared_satellites(sat_view)
-    checks = pdfs[[c for c in ["pdf_id", "network_name", "milestone", "layout", "link_method",
+    checks = pdfs[[c for c in ["pdf_id", "network_name", "milestone", "pdf_layout", "link_method",
                                "parse_problems", "source_note", "bureau_notes"] if c in pdfs]]
 
     readme = [(a, b) for a, b in README_ROWS]
     readme[1] = ("Last run", str(today))
     readme[2] = ("SNL source", source + (" (no PDF links; PDFs matched by name)" if source == "csv" else ""))
 
+    docs = {name: pd.read_csv(DOCS_DIR / f"{stem}.csv", dtype=str).fillna("")
+            for name, stem in [("Column definitions", "column_definitions")]
+            if (DOCS_DIR / f"{stem}.csv").exists()}
+
     main_path = OUT_DIR / "res35_main.xlsx"
     write_workbook(main_path, {
         "Overview": overview, "Satellites view": sat_view, "Shared satellites": shared,
         "Change log": change_log, "Checks": checks,
-        "networks": networks, "milestones": milestones, "pdfs": pdfs, "planes": planes,
-        "launches": launches, "bands": bands, "satellites": satellites,
+        "networks": networks, "milestones": milestones,
+        "pdfs": pdfs.drop(columns=["ssn_no", "mod_no"], errors="ignore"),   # both are in special_section
+        "planes": planes,
+        "launches": launches, "bands": bands, "satellites": satellites, **docs,
     }, readme)
     addon_path = OUT_DIR / "res35_frequency_addon.xlsx"
     write_workbook(addon_path, {"groups": groups, "satellite_bands": split_band_links(satellites),

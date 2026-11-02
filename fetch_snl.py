@@ -4,7 +4,7 @@ fetch_snl.py
 Gets the Resolution 35 Space Network List (SNL) and turns it into two tables:
 
     networks    one row per network (filing) on the SNL page
-    milestones  four rows per network (M0, M1, M2, M3) with deadline, status
+    milestones  four rows per network (M0, M1, M2, M3) with the milestone period expiry, status
                 and the link to that milestone's PDF (when one is published)
 
 Where the data comes from
@@ -39,7 +39,13 @@ import requests
 BUNDLE_URL = "https://www.itu.int/net/ITU-R/space/res35/build/bundle.js"
 PDF_BASE = "https://www.itu.int/net/ITU-R/space/documents/RES35"
 MILESTONES = ["M0", "M1", "M2", "M3"]
-YEARS_AFTER_CLOCK_START = {"M0": 0, "M1": 2, "M2": 5, "M3": 7}
+YEARS_AFTER_7_YEAR_LIMIT = {"M0": 0, "M1": 2, "M2": 5, "M3": 7}
+
+# Column names used before the November 2026 renaming. Old snapshots are read
+# through this map so the change log keeps comparing like with like.
+OLD_COLUMN_NAMES = {"clock_start": "seven_year_limit", "notified": "total_notified",
+                    "deployed": "total_deployed", "deployed_pct": "pct_deployed",
+                    "completion_type": "milestone_progress", "deadline": "milestone_period_expiry"}
 DATE_RE = re.compile(r"^\d{2}\.\d{2}\.\d{4}$")
 
 
@@ -178,11 +184,21 @@ def build_pdf_url(wic_no, ssn_no, rev=None, rev_no=None):
 
 def network_key(rec):
     """Name + ADM is NOT unique (L5, HIBLEO-2FL2, USASAT-NGSO-9C appear twice),
-    so the key also includes the clock-start date."""
+    so the key also includes the '7 year limit' date."""
     return f"{rec['sat_name']} | {rec['adm']} | {rec['M']}"
 
 
-def clean_status(raw, deadline, later_raw_values, today):
+def special_section_label(ssn_no, rev=None, rev_no=None):
+    """Special Section number as printed on the PDF cover, e.g. 'RES35/16 MOD-1'."""
+    if ssn_no in (None, ""):
+        return None
+    label = f"RES35/{int(ssn_no)}"
+    if rev and rev_no not in (None, ""):
+        label += f" MOD-{int(rev_no)}"
+    return label
+
+
+def clean_status(raw, expiry, later_raw_values, today):
     """
     Turn what the page shows into one value from a fixed list.
     raw               what the SNL page shows for this milestone
@@ -195,7 +211,7 @@ def clean_status(raw, deadline, later_raw_values, today):
             return "Skipped (completed early)"
         return "Blank"
     if DATE_RE.match(raw):
-        return "Pending" if deadline and deadline >= today else "Deadline passed, no status shown"
+        return "Pending" if expiry and expiry >= today else "Deadline passed, no status shown"
     known = {"met": "Met", "not met": "Not Met", "partially met": "Partially Met",
              "as received": "As Received",
              "not met, resolves 12 applies": "Not Met, resolves 12 applies"}
@@ -210,12 +226,13 @@ def build_tables(records, today=None):
 
     for rec in records:
         key = network_key(rec)
-        clock_start = to_date(rec.get("M"))
+        seven_year_limit = to_date(rec.get("M"))
         raw = {m: (rec.get(m) or "") for m in MILESTONES}
 
         rows = []
         for i, m in enumerate(MILESTONES):
-            deadline = add_years(clock_start, YEARS_AFTER_CLOCK_START[m]) if clock_start else None
+            expiry = (add_years(seven_year_limit, YEARS_AFTER_7_YEAR_LIMIT[m])
+                      if seven_year_limit else None)
             url = build_pdf_url(rec.get(f"wic_no_{m}"), rec.get(f"ssn_no_{m}"),
                                 rec.get(f"ssn_rev_{m}"), rec.get(f"ssn_rev_no_{m}"))
             rows.append({
@@ -223,14 +240,13 @@ def build_tables(records, today=None):
                 "network_name": rec["sat_name"],
                 "adm": rec["adm"],
                 "milestone": m,
-                "deadline": deadline,
+                "milestone_period_expiry": expiry,
                 "status_raw": raw[m],
-                "status_clean": clean_status(raw[m], deadline,
+                "status_clean": clean_status(raw[m], expiry,
                                              [raw[x] for x in MILESTONES[i + 1:]], today),
                 "brific_number": rec.get(f"wic_no_{m}"),
-                "special_section_no": rec.get(f"ssn_no_{m}"),
-                "revision_type": rec.get(f"ssn_rev_{m}"),
-                "revision_no": rec.get(f"ssn_rev_no_{m}"),
+                "special_section": special_section_label(rec.get(f"ssn_no_{m}"), rec.get(f"ssn_rev_{m}"),
+                                                         rec.get(f"ssn_rev_no_{m}")),
                 "pdf_url": url,
                 "pdf_id": url.rsplit("/", 1)[-1][:-4] if url else None,
             })
@@ -239,6 +255,12 @@ def build_tables(records, today=None):
         cleaned = [r["status_clean"] for r in rows]
         reached = [r["milestone"] for r in rows
                    if r["status_clean"] in ("Met", "Partially Met")]
+        if "Skipped (completed early)" in cleaned:
+            progress = "100% deployed at first report"
+        elif reached:
+            progress = "At least one milestone met"
+        else:
+            progress = "No milestone met yet"
         notified, deployed = to_int(rec.get("nbr_notif")), to_int(rec.get("nbr_deploy"))
         networks.append({
             "network_key": key,
@@ -246,14 +268,13 @@ def build_tables(records, today=None):
             "adm": rec["adm"],
             "adm_country": country_name(rec["adm"], names),
             "igso": rec.get("ntwk_org") or "",
-            "clock_start": clock_start,
+            "seven_year_limit": seven_year_limit,
             "resolves_19": rec.get("POST") or "",
-            "notified": notified,
-            "deployed": deployed,
-            "deployed_pct": round(100 * deployed / notified, 1) if notified and deployed is not None else None,
+            "total_notified": notified,
+            "total_deployed": deployed,
+            "pct_deployed": round(100 * deployed / notified, 1) if notified and deployed is not None else None,
             "deployed_exceeds_notified": bool(notified and deployed and deployed > notified),
-            "completion_type": ("early" if "Skipped (completed early)" in cleaned
-                                else "staged" if reached else "not started"),
+            "milestone_progress": progress,
             "highest_milestone_met": reached[-1] if reached else None,
             "new_sat_name": rec.get("new_sat_name"),
             "type": rec.get("type"),
@@ -269,6 +290,8 @@ def build_tables(records, today=None):
 def compare_snapshots(old_networks, old_milestones, new_networks, new_milestones, run_date):
     """Return a DataFrame of changes between two snapshots (empty if none)."""
     changes = []
+    old_networks = old_networks.rename(columns=OLD_COLUMN_NAMES)      # snapshots saved before the renaming
+    old_milestones = old_milestones.rename(columns=OLD_COLUMN_NAMES)
 
     def add(key, what, old, new):
         changes.append({"run_date": run_date, "network_key": key,
@@ -283,7 +306,7 @@ def compare_snapshots(old_networks, old_milestones, new_networks, new_milestones
     on = old_networks.set_index("network_key")
     nn = new_networks.set_index("network_key")
     for key in sorted(old_keys & new_keys):
-        for col in ["notified", "deployed", "resolves_19", "igso"]:
+        for col in ["total_notified", "total_deployed", "resolves_19", "igso"]:
             a, b = on.at[key, col], nn.at[key, col]
             if str(a) != str(b):
                 add(key, f"{col} changed", a, b)
@@ -304,4 +327,4 @@ if __name__ == "__main__":
     recs = extract_records(text)
     nets, ms = build_tables(recs)
     print(f"{len(nets)} networks, {ms['pdf_url'].notna().sum()} published milestone PDFs")
-    print(nets[["network_name", "adm", "clock_start", "notified", "deployed"]].to_string())
+    print(nets[["network_name", "adm", "seven_year_limit", "total_notified", "total_deployed"]].to_string())
