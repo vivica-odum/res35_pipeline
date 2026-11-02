@@ -198,6 +198,17 @@ def latest_pdf_per_network(pdfs):
         .groupby("network_key").tail(1)["pdf_id"]
 
 
+def arrange_satellites(satellites, pdfs):
+    """Satellite name first, then the PDF it was reported in and that PDF's
+    BR IFIC date and date the Bureau received the information."""
+    if satellites.empty:
+        return satellites
+    dates = [c for c in ["brific_date", "received_date"] if c in pdfs]
+    s = satellites.merge(pdfs[["pdf_id"] + dates], on="pdf_id", how="left")
+    first = ["satellite_name", "pdf_id"] + dates
+    return s[first + [c for c in s.columns if c not in first]]
+
+
 def build_satellite_view(pdfs, satellites, launches, planes):
     """One row per satellite per PDF, with its launch and its FILED plane next to it,
     plus the difference between reported and filed orbit (for the Res 8 work)."""
@@ -219,8 +230,8 @@ def build_satellite_view(pdfs, satellites, launches, planes):
     sv["perigee_minus_filed_km"] = (sv["perigee_km"] - sv["filed_perigee_km"]).round(2)
     sv["inclination_minus_filed_deg"] = (sv["inclination_deg"] - sv["filed_inclination_deg"]).round(3)
     sv["in_latest_pdf"] = sv["pdf_id"].isin(set(latest_pdf_per_network(pdfs)))
-    first = ["network_name", "adm", "milestone", "satellite_name", "itu_sat_id",
-             "launch_date", "launch_provider", "launch_vehicle", "launch_facility",
+    first = ["satellite_name", "network_name", "adm", "milestone", "brific_date", "received_date",
+             "itu_sat_id", "launch_date", "launch_provider", "launch_vehicle", "launch_facility",
              "launch_country", "launch_country_name", "plane_id", "apogee_km", "filed_apogee_km",
              "apogee_minus_filed_km", "perigee_km", "filed_perigee_km",
              "perigee_minus_filed_km", "inclination_deg", "filed_inclination_deg",
@@ -287,11 +298,11 @@ README_ROWS = [
     ("igso", "Intergovernmental satellite organization that filed (field ntwk_org), usually empty."),
     ("resolves_19", "SNL 'Resolves 19' column (field POST): post-milestone deployment reports under "
                     "resolves 19 of Resolution 35. The first are due 1 Feb 2032, so it is empty for now."),
-    ("res35_network_id (pdfs)", "First 'Identification number' on page 1 of the PDF (e.g. 121935017). "
-                                "Stays the same for a network across its milestones. Identifies the "
-                                "Res 35 record, not the filing. Blank on the oldest PDFs, which show one number."),
-    ("res35_submission_id (pdfs)", "Second 'Identification number' on page 1 (e.g. 123535017). New for every "
-                                   "PDF; digits 2-3 are the year the Bureau received the submission."),
+    ("identification_number (pdfs)", "'Identification number' exactly as printed on page 1 of the PDF "
+                                     "(e.g. 121935017 / 123535017). The oldest PDFs show one number."),
+    ("brific_date / received_date", "Date of the BR IFIC that published the PDF, and the date the Bureau "
+                                    "received the information. Repeated on the satellites sheets so each "
+                                    "satellite row shows when it was reported."),
     ("br6a_br6b_id_no (planes, groups)", "The tables' own 'BR6a/BR6b Id no.' column (newer PDFs: 'BR6a Id. no.'), e.g. 121500130. A different number "
                               "from the page-1 IDs: it points to the filing whose orbits are listed, and "
                               "newer PDFs' itu_sat_id values start with it. Likely the ITU notice ID "
@@ -390,6 +401,7 @@ def main():
         return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
     planes, launches, bands, satellites, groups = (stack(n) for n in
                                                    ["planes", "launches", "bands", "satellites", "groups"])
+    satellites = arrange_satellites(satellites, pdfs)
 
     # 5. Views + workbooks
     # English country names next to the ITU symbols

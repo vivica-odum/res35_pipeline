@@ -96,19 +96,16 @@ def parse_header(pages):
     m = re.search(r"(?<![A-Za-z0-9])M([0-3])(?![A-Za-z0-9:])", first)
     header["milestone"] = f"M{m.group(1)}" if m else None
 
-    # Page-1 "IDENTIFICATION NUMBER": usually two 9-digit numbers "121935017 / 123535017".
-    # These identify the Res 35 submission, NOT the filing: they are unrelated to the
-    # "BR6a/BR6b Id no." column inside the tables (stored as br6a_br6b_id_no in planes/groups).
-    #   res35_network_id    (middle digits 935) stays the same for a network across milestones
-    #   res35_submission_id (middle digits 535) is new for every PDF; digits 2-3 = year received
-    # The oldest M0 PDFs (2021-22) show only one number, from the submission series (1215...).
+    # Page-1 "IDENTIFICATION NUMBER", kept exactly as printed: usually two 9-digit
+    # numbers "121935017 / 123535017". It identifies this Res 35 submission; it is a
+    # different number from the "BR6a/BR6b Id no." column inside the tables (stored as
+    # br6a_br6b_id_no in planes/groups). The oldest M0 PDFs (2021-22) show only one number.
     m = re.search(r"\b(\d{9})\s*/\s*(\d{9})\b", first)
     if m:
-        header["res35_network_id"], header["res35_submission_id"] = m.group(1), m.group(2)
+        header["identification_number"] = f"{m.group(1)} / {m.group(2)}"
     else:
         single = re.findall(r"(?<!\d)(\d{9})(?!\d)", first)
-        header["res35_network_id"] = None
-        header["res35_submission_id"] = single[0] if len(single) == 1 else None
+        header["identification_number"] = single[0] if len(single) == 1 else None
 
     # Date the Bureau received the information
     m = re.search(rf"BUREAU ON.*?({DATE})", first, flags=re.S)
@@ -392,7 +389,7 @@ def run_checks(header, tables):
                 "milestone", "received_date"]:
         if header.get(key) in (None, ""):
             problems.append(f"header field '{key}' not found")
-    if not header.get("res35_network_id") and not header.get("res35_submission_id"):
+    if not header.get("identification_number"):
         problems.append("no identification number found")
 
     if header["total_notified"] is not None and len(planes):
@@ -470,7 +467,7 @@ if __name__ == "__main__":
         h = result["header"]
         print(f"\n=== {path}")
         for key in ["network_name", "adm", "special_section", "milestone", "brific_number",
-                    "brific_date", "received_date", "res35_network_id", "res35_submission_id",
+                    "brific_date", "received_date", "identification_number",
                     "total_notified", "total_deployed", "layout"]:
             print(f"  {key:18} {h[key]}")
         for name in SECTION_TITLES:
