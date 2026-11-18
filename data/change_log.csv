@@ -1,0 +1,6 @@
+run_date,network_key,change,old_value,new_value
+2026-11-18,FORTRAN | CHN | 12.02.2025,network added to SNL,,
+2026-11-18,O3B-C | G | 02.09.2021,network removed from SNL,,
+2026-11-18,MCSAT-2 HEO | F | 29.01.2021,total_deployed changed,4,13
+2026-11-18,MCSAT-2 HEO | F | 29.01.2021,M2 status_raw changed,As Received,Partially Met
+2026-11-18,MCSAT-2 HEO | F | 29.01.2021,M2 pdf_url changed,,https://www.itu.int/net/ITU-R/space/documents/RES35/3084/RES35/RES350009M2.pdf
