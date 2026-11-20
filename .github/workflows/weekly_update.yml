@@ -49,6 +49,16 @@ jobs:
         continue-on-error: true
         run: python fetch_space_explorer.py
 
+      # Res 35 reports still waiting to be published, for the "As Received" links.
+      - name: Update ITU As Received links
+        continue-on-error: true
+        run: python fetch_as_received.py
+
+      # A copy of the ESPL glossary, used when the live glossary can't be read.
+      - name: Save a copy of the ESPL glossary
+        continue-on-error: true
+        run: python fetch_espl_glossary.py
+
       - name: Build the dashboard
         run: python build_dashboard.py
 

@@ -15,7 +15,10 @@ saves a dated snapshot and logs what changed since the last run.
 |---|---|
 | `output/res35_main.xlsx` | Main workbook: README, Overview, Satellites view, Shared satellites, Change log, Checks, plus every core table |
 | `output/res35_frequency_addon.xlsx` | Optional frequency work: beam groups (transmit / receive) and satellite-to-band links |
-| `output/res35_dashboard.html` | Interactive dashboard of the same tables. Download it and open it in any web browser (GitHub won't display it). Hover a column name for its meaning; hover a network, PDF ID or milestone for links to the PDF and the ITU Space Explorer |
+| `output/res35_dashboard.html` | Interactive dashboard of the same tables, published at https://vivica-odum.github.io/res35_pipeline/output/res35_dashboard.html. Hover a column name or milestone status for its definition from the ESPL glossary; hover a network for its reports and ITU filings, or a chart for the network's frequency bands and orbits |
+| `data/as_received.csv` | Submissions on the ITU's "As Received" list (sent to the ITU but not yet published), used to link "As Received" milestones to their files |
+| `data/espl_glossary.csv` | Copy of the ESPL glossary, used when the live glossary can't be read |
+| `docs/espl_glossary_drafts.csv` | Every word the dashboard defines, with a draft definition, ready to paste into the ESPL glossary sheet |
 | `data/space_explorer_notices.csv` | Every ITU notice ID listed for each network in the ITU Space Explorer (used for the dashboard's links) |
 | `data/change_log.csv` | Every change detected between runs |
 | `data/snapshots/` | The networks and milestones tables as they were on each run date |
@@ -42,6 +45,8 @@ saves a dated snapshot and logs what changed since the last run.
    ```
    python run_pipeline.py
    python fetch_space_explorer.py   # optional: refresh the Space Explorer links
+   python fetch_as_received.py      # optional: refresh the As Received links
+   python fetch_espl_glossary.py    # optional: refresh the copy of the ESPL glossary
    python build_dashboard.py        # rebuild output/res35_dashboard.html
    ```
    The first run downloads every published PDF, about one per second, and parses them.
@@ -71,8 +76,9 @@ and the in-between Wednesday catches SNL changes such as new "As Received" statu
 
 - Run it by hand: repository page > **Actions** tab > "Weekly Res 35 update" > **Run workflow**.
 - Each run is listed on the Actions tab. A failed run shows a red X and GitHub emails the owner.
-- After the pipeline, it refreshes the Space Explorer links and rebuilds the dashboard. If the
-  ITU Space Explorer can't be reached, that step shows a warning and last week's links are kept.
+- After the pipeline, it refreshes the Space Explorer and As Received links and the copy of the
+  ESPL glossary, then rebuilds the dashboard. If one of those sites can't be reached, that step
+  shows a warning and last week's data is kept.
 - If the "Save results" step fails with a permission error: Settings > Actions > General >
   Workflow permissions > "Read and write permissions".
 
@@ -84,8 +90,10 @@ and the in-between Wednesday catches SNL changes such as new "As Received" statu
 | `parse_pdf.py` | Reads one milestone PDF into tables. `python parse_pdf.py some.pdf` prints a summary |
 | `run_pipeline.py` | Runs everything and writes the workbooks |
 | `fetch_space_explorer.py` | Looks up each network's ITU notice IDs in the ITU Space Explorer and saves them to `data/space_explorer_notices.csv` |
+| `fetch_as_received.py` | Looks up each network on the ITU "As Received" list and saves `data/as_received.csv` |
+| `fetch_espl_glossary.py` | Saves a copy of the ESPL glossary. Its `PROJECT` setting is the glossary Project name whose terms the dashboard uses |
 | `build_dashboard.py` | Builds `output/res35_dashboard.html` from the main workbook, the column definitions and the glossary. The page's layout and styling are in `templates/` |
-| `docs/ITU_glossary_Res35.xlsx` | ITU terms used in these tables, with a source for each. Shown as the dashboard's Glossary tab |
+| `docs/ITU_glossary_Res35.xlsx` | Earlier ITU glossary for this project (now replaced by the ESPL glossary) |
 | `explore_results.ipynb` | Runs the pipeline from Jupyter and opens the results |
 | `docs/column_definitions.csv` | What every column means, with its ITU label, data item code and source. Shown in the workbook as the Column definitions sheet. Edit this file to change a definition |
 | `itu_country_codes.csv` | ITU country symbols to English names (D = Germany, G = United Kingdom, GUF = French Guiana). Add a row if the pipeline warns about an unknown code |
@@ -115,3 +123,13 @@ The page opens for any of them. The dashboard links to the network's latest noti
 itself shows for the network. `br6a_br6b_id_no` in the PDFs is the notification that applied
 when that PDF was submitted, so for some networks it is an older notice.
 
+
+## Definitions on the dashboard (ESPL glossary)
+
+Definitions come from the lab's ESPL glossary sheet, read live when the page opens. A row is
+used when its **Project** is `ITU Resolution 35` (set in `fetch_espl_glossary.py`) and its
+**Term** or **Acronym** matches the word, ignoring case, spaces, underscores and hyphens. So a
+Term "Total notified", or any Term with Acronym `total_notified`, defines the total_notified
+column. Words the glossary doesn't have yet use the draft wording in
+`docs/column_definitions.csv` and `build_dashboard.py` (STATUS_DEFS), without a glossary link.
+`docs/espl_glossary_drafts.csv` lists every word with its draft, ready to copy into the sheet.

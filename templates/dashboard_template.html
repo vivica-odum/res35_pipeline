@@ -1,137 +1,131 @@
 <title>Res 35 Network Tables</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<meta name="color-scheme" content="light">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Roboto+Condensed:wght@600;700&family=Roboto+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Roboto+Condensed:wght@600;700&family=Roboto+Mono:wght@400;500&family=Noto+Color+Emoji&display=swap">
 <style>
-/* Layout: ESPL house style (espl.ae.gatech.edu + the SBI model). White ground, grey hairlines,
-   rounded white panels with soft shadows, Roboto / Roboto Condensed, Tech Gold headings and
-   the lab's yellow for selection, hover and links. Status colors stay separate from the golds. */
+/* Layout: ESPL house style, always light (espl.ae.gatech.edu + the SBI model).
+   Link motifs follow the ESPL site: dark gold text with a sliding arrow for links to ESPL
+   pages (the glossary); grey text with a box-and-arrow icon for outside sources (PDFs, ITU
+   pages). Words with a definition get the SBI model's dotted grey underline. Bright yellow is
+   kept for things that need attention, so it is not used for links or selection. */
 :root {
+  color-scheme: light;
   --bg: #ffffff;
   --surface: #ffffff;
-  --sunk: #f5f5f5;
+  --sunk: #f6f6f6;
   --ink: #262626;
+  --ink-2: #444444;
   --muted: #6b6b6b;
+  --faint: #8b8b8b;
   --line: #dddddd;
-  --accent: #b88b13;          /* SBI model selection gold: focus rings, sort arrows */
-  --yellow: #eaaa00;          /* Buzz Gold: active tab, summary rule */
-  --head: #a4925a;            /* Tech Gold: headings, as on the ESPL site */
-  --link: #74652f;            /* dark gold link text, as on the ESPL site */
-  --gold-soft: #fbf3d6;
-  --hover: #fffaea;
-  --navy: #003057;            /* Georgia Tech navy */
+  --esl-gold: #74652f;        /* ESPL "→" links to ESPL pages */
+  --esl-gold-hover: #887637;
+  --select: #b88b13;          /* SBI model selection gold: current tab, sort arrow */
+  --focus: #9a7413;
+  --head: #a4925a;            /* Tech Gold headings */
+  --pop-line: #e2d9b8;        /* SBI glossary popover border */
+  --pop-top: #b9943d;
+  --tint: #fbfaf6;            /* SBI footnote background */
+  --orbit: #8a7a45;
+  --earth: #efefef;
   --good: #2e7d4f; --good-bg: #e4f2e9;
   --warn: #b5531c; --warn-bg: #fbe9de;
   --bad: #b3261e; --bad-bg: #f8e1df;
   --info: #003057; --info-bg: #e1e9f2;
   --plus: #b3261e; --minus: #1f5c99;
-  --shadow: 0 12px 35px rgba(0, 0, 0, .10), 0 2px 6px rgba(0, 0, 0, .05);
-  --logo-filter: none;
+  --shadow: 0 10px 28px rgba(0, 0, 0, .14);
   --f-display: "Roboto Condensed", "Arial Narrow", Arial, sans-serif;
   --f-body: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --f-mono: "Roboto Mono", ui-monospace, Consolas, monospace;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #121212; --surface: #1b1b1b; --sunk: #232323; --ink: #ececec; --muted: #a6a6a6;
-    --line: #333333; --accent: #eaaa00; --yellow: #eaaa00; --head: #c9b26f; --link: #e5c66b;
-    --gold-soft: #2c2510; --hover: #24200f; --navy: #9cc0e6;
-    --good: #6fcf97; --good-bg: #173523; --warn: #f0a36b; --warn-bg: #3d2414;
-    --bad: #f08a80; --bad-bg: #3d1a17; --info: #9cc0e6; --info-bg: #16273a;
-    --plus: #f08a80; --minus: #9cc0e6;
-    --shadow: 0 12px 35px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .3);
-    --logo-filter: invert(1);
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #121212; --surface: #1b1b1b; --sunk: #232323; --ink: #ececec; --muted: #a6a6a6;
-  --line: #333333; --accent: #eaaa00; --yellow: #eaaa00; --head: #c9b26f; --link: #e5c66b;
-  --gold-soft: #2c2510; --hover: #24200f; --navy: #9cc0e6;
-  --good: #6fcf97; --good-bg: #173523; --warn: #f0a36b; --warn-bg: #3d2414;
-  --bad: #f08a80; --bad-bg: #3d1a17; --info: #9cc0e6; --info-bg: #16273a;
-  --plus: #f08a80; --minus: #9cc0e6;
-  --shadow: 0 12px 35px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .3);
-  --logo-filter: invert(1);
-  color-scheme: dark;
+  --f-flag: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
+html { background: var(--bg); }
 body {
   background: var(--bg); color: var(--ink); font: 14.4px/1.5 var(--f-body);
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 22px 40px;
 }
-a { color: var(--link); }
+a { color: inherit; }
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible {
-  outline: 2px solid var(--accent); outline-offset: 2px;
+  outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 2px;
 }
 .wrap { max-width: 1500px; margin: 0 auto; display: grid; gap: 18px; }
+.flag { font-family: var(--f-flag); font-weight: 400; }
+
+/* ESPL link motifs */
+.gl { display: inline-flex; align-items: flex-end; gap: .36em; color: var(--esl-gold); font-weight: 500;
+  text-decoration: none; line-height: 1.35; transition: color .18s; }
+.gl:hover, .gl:focus-visible { color: var(--esl-gold-hover); }
+.gl .arr { display: inline-block; transition: transform .18s; }
+.gl:hover .arr, .gl:focus-visible .arr { transform: translateX(5px); }
+.xl { color: var(--muted); text-decoration: underline; text-decoration-color: rgba(107, 107, 107, .45);
+  text-underline-offset: 2px; text-decoration-thickness: 1px; white-space: nowrap; }
+.xl.plain { text-decoration: none; }
+.xl:hover, .xl:focus-visible { color: #454545; }
+.xl svg { display: inline-block; width: .9em; height: .9em; margin-left: .22em; overflow: visible; fill: none;
+  stroke: currentColor; stroke-width: 1.55; stroke-linecap: round; stroke-linejoin: round;
+  vertical-align: -.08em; opacity: .82; }
+.xl svg .ext-box { transition: opacity .22s, transform .22s; transform-origin: center; }
+.xl svg .ext-arrow { transition: transform .22s cubic-bezier(.22, 1, .36, 1); }
+.xl:hover svg .ext-arrow, .xl:focus-visible svg .ext-arrow { transform: translate(2.4px, -2.4px); }
+.xl:hover svg .ext-box, .xl:focus-visible svg .ext-box { opacity: .58; transform: scale(.96); }
+.term { border-bottom: 1px dotted var(--faint); cursor: help; }
 
 /* Masthead */
 .topline { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px;
   padding-bottom: 16px; border-bottom: 1px solid var(--line); }
 .logo { display: block; line-height: 0; }
-.logo img { height: 46px; width: auto; max-width: 100%; filter: var(--logo-filter); }
+.logo img { height: 46px; width: auto; max-width: 100%; }
 .mast { display: grid; gap: 6px; }
-.mast h1 {
-  font: 700 clamp(26px, 3.6vw, 36px)/1.1 var(--f-display);
-  letter-spacing: -.005em; margin: 0; text-wrap: balance; color: var(--ink);
-}
+.mast h1 { font: 700 clamp(26px, 3.6vw, 36px)/1.1 var(--f-display); letter-spacing: -.005em; margin: 0;
+  text-wrap: balance; color: var(--ink); }
 .mast h1 span { color: var(--head); }
 .mast p { margin: 0; color: var(--muted); max-width: 72ch; }
-.asof { font: 12px/1.5 var(--f-mono); color: var(--muted); text-align: right; }
-.asof b { color: var(--ink); font-weight: 500; }
+.asof { font-size: 12px; line-height: 1.5; color: var(--muted); text-align: right; }
 
 /* Summary strip */
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px;
-  background: var(--line); border: 1px solid var(--line); border-top: 3px solid var(--yellow);
-  border-radius: 4px 4px 12px 12px; overflow: hidden; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px;
+  background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .stat { background: var(--surface); padding: 12px 16px; display: grid; gap: 2px; }
 .stat .n { font: 700 28px/1.05 var(--f-display); font-variant-numeric: tabular-nums; }
-.stat .l { font-size: 12px; color: var(--muted); }
-.stat .l .h { border-bottom: 1px dashed var(--line); cursor: help; }
-.stat:hover .l .h, .stat:focus-visible .l .h { border-bottom-color: var(--muted); }
+.stat .l { font-size: 12px; color: var(--muted); justify-self: start; }
 
 /* Tabs */
 .tabs { display: flex; gap: 2px; overflow-x: auto; border-bottom: 1px solid var(--line); scrollbar-width: thin; }
-.tab {
-  appearance: none; border: 0; background: none; color: var(--muted); cursor: pointer;
+.tab { appearance: none; border: 0; background: none; color: var(--muted); cursor: pointer;
   font: 600 13px/1 var(--f-body); padding: 11px 14px 12px; border-bottom: 2px solid transparent;
-  white-space: nowrap; margin-bottom: -1px;
-}
+  white-space: nowrap; margin-bottom: -1px; }
 .tab:hover { color: var(--ink); }
-.tab[aria-selected="true"] { color: var(--ink); border-bottom: 3px solid var(--yellow); padding-bottom: 11px; }
-.tab .c { font: 500 11px var(--f-mono); color: var(--muted); margin-left: 6px; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--select); }
+.tab .c { font: 500 11px var(--f-mono); color: var(--faint); margin-left: 6px; }
 
-/* Toolbar */
-.bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
-.blurb { flex: 1 1 320px; color: var(--muted); margin: 0; min-width: 0; }
+/* Toolbar: description on its own line, controls on one line below */
+.bar { display: grid; gap: 10px; }
+.blurb { color: var(--muted); margin: 0; }
 .ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.ctl input[type=search], .ctl select, .btn {
-  font: 500 13px var(--f-body); color: var(--ink); background: var(--surface);
-  border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; height: 34px;
-}
-.ctl input[type=search] { width: min(260px, 100%); }
-.ctl select { max-width: 200px; }
-.btn { cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-.btn:hover { border-color: var(--muted); }
+.ctl input[type=search], .btn { font: 500 13px var(--f-body); color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; height: 34px; }
+.ctl input[type=search] { width: min(280px, 100%); }
+.btn { cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.btn:hover { border-color: var(--faint); }
 .btn[disabled] { opacity: .45; cursor: default; }
-.check { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: var(--ink); cursor: pointer; }
+.check { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: var(--ink); cursor: pointer;
+  white-space: nowrap; }
 .colpick { position: relative; }
 .chev { width: 12px; height: 12px; flex: 0 0 12px; fill: none; stroke: currentColor; stroke-width: 1.8;
   stroke-linecap: round; stroke-linejoin: round; color: var(--muted); transition: transform .18s ease; }
 .btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
-.btn[aria-expanded="true"] { border-color: var(--accent); }
-.btn.on { border-color: var(--accent); background: var(--gold-soft); }
+.btn[aria-expanded="true"] { border-color: var(--faint); }
+.btn.on { border-color: var(--select); background: var(--tint); }
 #netLabel { max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.colmenu {
-  position: fixed; z-index: 40; width: min(270px, calc(100vw - 16px)); max-height: 360px; overflow: auto;
+.colmenu { position: fixed; z-index: 40; width: min(270px, calc(100vw - 16px)); max-height: 360px; overflow: auto;
   background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow);
-  padding: 8px; display: grid; gap: 2px; align-content: start;
-}
+  padding: 8px; display: grid; gap: 2px; align-content: start; }
 .colmenu.netmenu { width: min(250px, calc(100vw - 16px)); }
 .colmenu .mhead { position: sticky; top: -8px; z-index: 1; margin: -8px -8px 2px; padding: 8px 8px 0;
   background: var(--surface); }
@@ -143,37 +137,34 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   font: 12px var(--f-mono); cursor: pointer; }
 .colmenu label:hover { background: var(--sunk); }
 .colmenu .row { display: flex; gap: 6px; padding: 4px 4px 8px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
-.colmenu .row button { font: 600 12px var(--f-body); background: none; border: 0; color: var(--link); cursor: pointer; padding: 2px 4px; }
-@media (prefers-reduced-motion: reduce) { .chev { transition: none; } }
+.colmenu .row button { font: 500 12px var(--f-body); background: none; border: 0; color: var(--esl-gold);
+  cursor: pointer; padding: 2px 4px; }
+@media (prefers-reduced-motion: reduce) { .chev, .gl .arr, .xl svg * { transition: none; } }
 
 /* Table */
-.pane { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 6px 22px rgba(0, 0, 0, .05); overflow: auto;
-  max-height: calc(100vh - 150px); min-height: 280px; }
+.pane { background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, .05); overflow: auto; max-height: calc(100vh - 150px); min-height: 280px; }
 table { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; font-size: 13px; }
-th, td { padding: 7px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th, td { padding: 7px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
 td { max-width: 340px; }
 td.wide { min-width: 280px; white-space: normal; }
 td:not(.wide) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-thead th {
-  position: sticky; top: 0; z-index: 3; background: var(--sunk); white-space: nowrap;
-  font: 500 12px/1.2 var(--f-mono); color: var(--muted); cursor: pointer; user-select: none;
-}
-thead th .h { border-bottom: 1px dashed var(--muted); padding-bottom: 1px; }
+thead th { position: sticky; top: 0; z-index: 3; background: var(--sunk); white-space: nowrap;
+  font: 500 12px/1.2 var(--f-mono); color: var(--muted); cursor: pointer; user-select: none; vertical-align: bottom; }
+thead th .h { border-bottom: 1px dotted var(--faint); padding-bottom: 1px; }
 thead th:hover, thead th:focus-visible { color: var(--ink); }
-thead th .arr { font-size: 10px; margin-left: 4px; color: var(--accent); }
-tbody tr:hover td { background: var(--hover); }
+thead th .arr { font-size: 10px; margin-left: 4px; color: var(--select); }
+tbody tr:hover td { background: #fafafa; }
 th:first-child, td:first-child { position: sticky; left: 0; z-index: 2; background: var(--surface);
   box-shadow: 1px 0 0 var(--line); font-weight: 600; }
 thead th:first-child { z-index: 4; background: var(--sunk); }
 td.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--f-mono); font-size: 12px; }
 td.mono { font-family: var(--f-mono); font-size: 12px; }
 td.empty { color: var(--line); }
+td.viz { padding-block: 4px; }
+td.viz .term { border-bottom: 0; display: inline-block; line-height: 0; }
+td.viz .na { color: var(--faint); font-size: 12px; }
 .d-plus { color: var(--plus); } .d-minus { color: var(--minus); }
-.lk { color: var(--ink); text-decoration: underline dotted var(--accent); text-underline-offset: 3px;
-  text-decoration-thickness: 1.5px; cursor: help; }
-.lk:hover, .lk:focus-visible { color: var(--link); }
-a.ext { font: 500 12px var(--f-body); color: var(--link); text-decoration: none; }
-a.ext:hover { text-decoration: underline; }
 
 .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font: 600 11.5px/1.6 var(--f-body);
   background: var(--sunk); color: var(--muted); white-space: nowrap; }
@@ -181,36 +172,40 @@ a.ext:hover { text-decoration: underline; }
 .pill.warn { background: var(--warn-bg); color: var(--warn); }
 .pill.bad { background: var(--bad-bg); color: var(--bad); }
 .pill.info { background: var(--info-bg); color: var(--info); }
+.term .pill { cursor: help; }
+.term:has(> .pill) { border-bottom: 0; }
 
 .pager { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;
   color: var(--muted); font-size: 13px; }
 .pager .ctl { gap: 6px; }
 .none { padding: 40px 16px; text-align: center; color: var(--muted); }
 
-/* Hover card */
-#pop {
-  position: fixed; z-index: 50; width: min(380px, calc(100vw - 24px)); max-height: min(440px, 70vh); overflow: auto;
-  background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px;
-  box-shadow: var(--shadow); padding: 14px 16px; font-size: 13px; line-height: 1.5; border-radius: 12px;
-}
-#pop .k { font: 700 10.5px var(--f-body); letter-spacing: .065em; text-transform: uppercase; color: var(--muted); }
-#pop h3 { margin: 2px 0 8px; font: 700 19px/1.2 var(--f-display); }
-#pop p { margin: 0 0 8px; }
-#pop .meta { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 8px 0; font-size: 12px; }
-#pop .meta dt { color: var(--muted); }
-#pop .meta dd { margin: 0; font-family: var(--f-mono); word-break: break-word; }
-#pop .go { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px;
-  margin: 6px 0; border-radius: 0 8px 8px 0; border-left: 3px solid var(--accent); background: var(--gold-soft);
-  text-decoration: none; color: var(--ink); }
-#pop .go:hover { background: var(--hover); }
-#pop .go b { color: var(--link); font-weight: 600; }
-#pop .go small { font: 11px var(--f-mono); color: var(--muted); }
-#pop .sec { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
-#pop ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 3px; }
-#pop li { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; }
-#pop li span { color: var(--muted); font-family: var(--f-mono); font-size: 11px; white-space: nowrap; }
-#pop .note { color: var(--muted); font-size: 12px; }
-#pop .pin { float: right; font: 11px var(--f-body); color: var(--muted); }
+/* Hover card: the SBI model's glossary popover */
+#pop { position: fixed; z-index: 50; width: min(380px, calc(100vw - 20px)); max-height: min(480px, 75vh);
+  overflow: auto; background: var(--surface); color: #333; border: 1px solid var(--pop-line);
+  border-top: 2px solid var(--pop-top); border-radius: 9px; box-shadow: var(--shadow);
+  padding: 11px 13px 10px; font-size: 12px; line-height: 1.42; }
+#pop.wide { width: min(430px, calc(100vw - 20px)); }
+#pop .k { font: 700 10.5px var(--f-body); letter-spacing: .065em; text-transform: uppercase; color: #777; }
+#pop strong.t { display: block; font-size: 13.5px; font-weight: 700; color: var(--ink); margin-top: 1px; }
+#pop p { margin: 6px 0 7px; }
+#pop .src { color: #686868; font-size: 10.5px; display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: baseline; }
+#pop .src .gl { font-size: 11.5px; margin-left: auto; }
+#pop .sec { margin-top: 10px; padding-top: 8px; border-top: 1px solid #ececec; }
+#pop .sec > .k { margin-bottom: 4px; }
+#pop .go { margin: 6px 0 2px; font-size: 12px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+#pop table.mini { width: 100%; min-width: 0; font-size: 11.5px; border-collapse: collapse; }
+#pop table.mini th, #pop table.mini td { position: static; padding: 3px 6px 3px 0; border-bottom: 1px solid #f0f0f0;
+  background: none; box-shadow: none; font-weight: 400; white-space: nowrap; max-width: none; }
+#pop table.mini th { font: 500 10px var(--f-body); color: #888; text-transform: uppercase; letter-spacing: .05em;
+  cursor: default; vertical-align: bottom; }
+#pop table.mini td.n { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+#pop table.mini tr:last-child td { border-bottom: 0; }
+#pop .fn { color: #888; font-size: 10.5px; margin: 5px 0 0; }
+#pop .note { color: #777; font-size: 11.5px; }
+#pop .pin { float: right; font-size: 10.5px; color: #888; }
+#pop .chart { margin: 6px 0 4px; }
+#pop .scroll { max-height: 180px; overflow: auto; }
 
 footer { color: var(--muted); font-size: 12.5px; display: grid; gap: 6px; max-width: 95ch; }
 footer p { margin: 0; }
@@ -218,9 +213,6 @@ footer code { font: 12px var(--f-mono); }
 @media (max-width: 640px) {
   .asof { text-align: left; }
   .pane { max-height: none; }
-}
-@media (prefers-reduced-motion: no-preference) {
-  #pop { transition: opacity .12s ease; }
 }
 </style>
 
@@ -231,9 +223,9 @@ footer code { font: 12px var(--f-mono); }
   </div>
   <header class="mast">
     <h1>Resolution 35 <span>network tables</span></h1>
-    <p>ITU Space Network List milestones and the satellites reported in each milestone PDF.
-       Hover a column name for its meaning. Hover an underlined value for the PDF and the
-       network's ITU Space Explorer page.</p>
+    <p>ITU Space Network List milestones and the satellites reported in each milestone report.
+       Hover a column name or an underlined word for its definition, and a network for its reports
+       and ITU filings.</p>
   </header>
 
   <section class="stats" id="stats" aria-label="Summary"></section>
@@ -248,11 +240,11 @@ footer code { font: 12px var(--f-mono); }
         <button class="btn" id="netBtn" aria-expanded="false" aria-controls="netMenu" aria-haspopup="true"><span id="netLabel">All networks</span><svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
         <div class="colmenu netmenu" id="netMenu" hidden></div>
       </div>
-      <label class="check" id="latestWrap"><input type="checkbox" id="latest" checked> Latest PDF only</label>
       <div class="colpick">
         <button class="btn" id="colBtn" aria-expanded="false" aria-controls="colMenu" aria-haspopup="true">Columns<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
         <div class="colmenu" id="colMenu" hidden></div>
       </div>
+      <label class="check" id="latestWrap"><input type="checkbox" id="latest" checked> Latest report only</label>
     </div>
   </div>
 
@@ -268,12 +260,7 @@ footer code { font: 12px var(--f-mono); }
   </div>
 
   <footer>
-    <p><b>About the Space Explorer links.</b> The number at the end of a Space Explorer address is an ITU
-      notice ID. Each submission for a network (advance publication, coordination, notification, and the
-      Res 49, Res 35 and Res 8 submissions) has its own. Network links here use the network's latest
-      notification, or its latest coordination request when it has no notification, which matches the
-      notice the Space Explorer shows for the network. <code>br6a_br6b_id_no</code> in the PDFs is the
-      notification that applied when that PDF was submitted, so it can be older.</p>
+    <p id="foot1"></p>
     <p id="foot2"></p>
   </footer>
 </div>
@@ -282,6 +269,7 @@ footer code { font: 12px var(--f-mono); }
 <script>
 const DATA = /*__DATA__*/null;
 const PAGE = 100;
+const RATIO = "deployed / notified";
 const tables = Object.fromEntries(DATA.tables.map(t => [t.id, t]));
 const state = {};
 const netSel = new Set();          // networks picked in the network filter; shared by every tab
@@ -291,13 +279,81 @@ let cur = null;
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN = n => Number(n).toLocaleString("en-US");
+const fmtGHz = mhz => (+(mhz / 1000).toFixed(3)).toString() + " GHz";
+const withFlag = s => esc(s).replace(/([\u{1F1E6}-\u{1F1FF}]{2})/gu, '<span class="flag">$1</span>');
+
+/* ---------- ESPL link motifs ---------- */
+const EXT_SVG = '<svg viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path class="ext-box" d="M7.25 4.25H4.5A1.75 1.75 0 0 0 2.75 6v7.5a1.75 1.75 0 0 0 1.75 1.75H12a1.75 1.75 0 0 0 1.75-1.75v-2.75"/><g class="ext-arrow"><path d="M9.25 2.75h6v6"/><path d="m8 10 7.25-7.25"/></g></svg>';
+// outside source (PDF, ITU page): grey, discreet underline, box-and-arrow icon
+const xl = (url, label, plain) => `<a class="xl${plain ? " plain" : ""}" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${label}${EXT_SVG}</a>`;
+// ESPL page (the glossary): dark gold with a sliding arrow
+const gl = (url, label) => `<a class="gl" href="${esc(url)}" target="_blank" rel="noopener"><span>${label}</span><span class="arr" aria-hidden="true">→</span></a>`;
+
+/* ---------- ESPL glossary (read live; the copy built into the page is the fallback) ---------- */
+const G = DATA.glossary;
+const norm = s => String(s ?? "").toLowerCase().replace(/[\u{1F1E6}-\u{1F1FF}]/gu, "").replace(/[\s_\-]+/g, " ").trim();
+let glossary = new Map();
+function setGlossary(entries) {
+  glossary = new Map();
+  entries.forEach(e => [e.term, ...String(e.acronym || "").split(";")].map(norm).filter(Boolean)
+    .forEach(k => { if (!glossary.has(k)) glossary.set(k, e); }));
+}
+setGlossary(G.entries || []);
+function parseCsv(text) {
+  const rows = []; let row = [], f = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
+    else if (c === '"') q = true;
+    else if (c === ",") { row.push(f); f = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(f); rows.push(row); row = []; f = ""; }
+    else f += c;
+  }
+  if (f || row.length) { row.push(f); rows.push(row); }
+  return rows;
+}
+(async () => {
+  try {
+    const res = await fetch(`${G.csv}&refresh=${Date.now()}`, { cache: "no-store" });
+    if (!res.ok) throw new Error(res.status);
+    const [head, ...recs] = parseCsv(await res.text());
+    const ix = k => head.indexOf(k);
+    if (ix("Term") < 0 || ix("Definition") < 0 || ix("Project") < 0) throw new Error("columns");
+    const live = recs.filter(r => (r[ix("Project")] || "").trim() === G.project && r[ix("Term")] && r[ix("Definition")])
+      .map(r => ({ term: r[ix("Term")].trim(), acronym: (r[ix("Acronym")] || "").trim(), definition: r[ix("Definition")].trim(),
+        sources: [1, 2, 3, 4, 5].map(i => ({ label: (r[ix(`Source ${i} display`)] || "").trim(), url: (r[ix(`Source ${i} link`)] || "").trim() }))
+          .filter(s => s.label || s.url).map(s => ({ label: s.label || s.url, url: s.url.startsWith("https://") ? s.url : "" })) }));
+    setGlossary(live);
+    document.body.dataset.glossary = "live:" + live.length;
+  } catch (e) {
+    document.body.dataset.glossary = "copy:" + (G.entries || []).length;   // e.g. blocked inside an artifact
+  }
+})();
+const glossaryLink = term => gl(`${G.page}?term=${encodeURIComponent(term)}`, "ESPL Glossary");
+
+// A definition, ESPL glossary first; `fb` = {definition, source_name, source_url} when the glossary has none yet.
+function definition(word, fb = {}) {
+  const e = glossary.get(norm(word));
+  if (e) {
+    const srcs = e.sources.map(s => s.url ? xl(s.url, esc(s.label), true) : esc(s.label)).join(" · ");
+    return { title: e.acronym && norm(e.acronym) !== norm(word) && !/_/.test(e.acronym) ? `${e.term} (${e.acronym})` : e.term,
+      html: `<p>${esc(e.definition)}</p><div class="src">${srcs ? `<span>${srcs}</span>` : ""}${glossaryLink(e.term)}</div>` };
+  }
+  if (!fb.definition) return { title: word, html: `<p class="note">No definition yet.</p>` };
+  const src = fb.source_url ? xl(fb.source_url, esc(fb.source_name || "Source"), true) : esc(fb.source_name || "");
+  return { title: word, html: `<p>${esc(fb.definition)}</p>${src ? `<div class="src"><span>${src}</span></div>` : ""}` };
+}
 
 /* ---------- header ---------- */
 const m = DATA.meta;
-$("#asof").innerHTML = `Data from pipeline run <b>${esc(m.last_run)}</b><br>Space Explorer notices checked <b>${esc(m.notices_checked || "never")}</b>`;
+$("#asof").innerHTML = `Data from pipeline run ${esc(m.last_run)}<br>ITU filings checked ${esc(m.notices_checked || "never")}`;
 $("#stats").innerHTML = m.stats.map((x, i) =>
-  `<div class="stat" tabindex="0" data-pop="stat" data-p="${esc(JSON.stringify({ i }))}"><span class="n">${fmtN(x.n)}</span><span class="l"><span class="h">${esc(x.label)}</span></span></div>`).join("");
-$("#foot2").innerHTML = `Sources: <a href="${esc(m.snl_url)}" target="_blank" rel="noopener">ITU Res 35 Space Network List</a>, its milestone PDFs, and the ITU Space Explorer. Built ${esc(m.built)} by <code>build_dashboard.py</code> in the ESPL res35_pipeline.`;
+  `<div class="stat" tabindex="0" data-pop="stat" data-p="${esc(JSON.stringify({ i }))}"><span class="n">${fmtN(x.n)}</span><span class="l term">${esc(x.label)}</span></div>`).join("");
+$("#foot1").innerHTML = `Sources: ${xl(m.snl_url, "ITU Res 35 Space Network List")} and its milestone reports, ` +
+  `${xl("https://www.itu.int/itu-r/space/apps/public/spaceexplorer/", "ITU Space Explorer")} and ` +
+  `${xl("https://www.itu.int/ITU-R/space/asreceived/Publication/AsReceived", "ITU As Received list")}. ` +
+  `Definitions: ${gl(G.page, "ESPL Glossary")}`;
+$("#foot2").innerHTML = `Built ${esc(m.built)} by <code>build_dashboard.py</code> in the ESPL res35_pipeline.`;
 
 /* ---------- tabs ---------- */
 $("#tabs").innerHTML = DATA.tables.map(t =>
@@ -320,7 +376,6 @@ function show(id) {
   document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.id === t.id));
   $("#blurb").textContent = t.blurb;
   $("#q").value = s.q;
-  // network filter (only on tables that can be tied to a network)
   $("#netWrap").hidden = s.idx.network_name == null && s.idx.networks == null && s.idx.pdf_id == null;
   netLabel();
   $("#latestWrap").hidden = s.idx.in_latest_pdf == null;
@@ -336,6 +391,14 @@ function rowNet(t, s, r) {
   return [];
 }
 
+function sortVal(col, v) {
+  if (v == null) return null;
+  if (col === "frequency_bands") return DATA.viz[v] ? DATA.viz[v].bands.length : null;
+  if (col === "orbits") return DATA.viz[v] ? DATA.viz[v].shells.reduce((a, x) => a + x.planes, 0) : null;
+  if (col === RATIO) return Number(String(v).split(" / ")[0].replace(/,/g, ""));
+  return v;
+}
+
 function filtered(t, s) {
   const q = s.q.trim().toLowerCase();
   let rows = t.rows.map((r, i) => i);
@@ -345,7 +408,7 @@ function filtered(t, s) {
   if (s.sort != null) {
     const k = s.idx[s.sort];
     rows.sort((a, b) => {
-      const x = t.rows[a][k], y = t.rows[b][k];
+      const x = sortVal(s.sort, t.rows[a][k]), y = sortVal(s.sort, t.rows[b][k]);
       if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
       if (typeof x === "number" && typeof y === "number") return (x - y) * s.dir;
       return String(x).localeCompare(String(y), "en", { numeric: true }) * s.dir;
@@ -354,8 +417,105 @@ function filtered(t, s) {
   return rows;
 }
 
+/* ---------- mini charts ---------- */
+const ALL_BANDS = Object.values(DATA.viz).flatMap(v => v.bands).filter(b => b[1] > 0 && b[2] > 0);
+// Thumbnails share one log scale so networks can be compared at a glance.
+const F_LO = Math.min(10000, ...ALL_BANDS.map(b => b[1] * 0.97)), F_HI = Math.max(52000, ...ALL_BANDS.map(b => b[2] * 1.03));
+// Satellite-industry names for the ranges these filings use (approximate).
+const REGIONS = [["Ku", 10700, 14500], ["Ka", 17300, 31000], ["Q/V", 37500, 51400]];
+
+function bandsSVG(allBands, big) {
+  const bands = allBands.filter(b => b[1] > 0 && b[2] > 0);
+  const W = big ? 352 : 92, H = big ? 176 : 34, L = big ? 52 : 2, R = big ? 30 : 2, T = big ? 8 : 3, B = big ? 8 : 3;
+  const pw = W - L - R, ph = H - T - B, n = bands.length;
+  let y;
+  if (big) {             // the hover view zooms to this network's own range, on a linear scale
+    const lo = Math.min(...bands.map(b => b[1])), hi = Math.max(...bands.map(b => b[2]));
+    const pad = Math.max((hi - lo) * 0.06, 150), d0 = lo - pad, d1 = hi + pad;
+    y = f => T + ph - (f - d0) / (d1 - d0) * ph;
+    var ticks = (() => { const span = (d1 - d0) / 1000, steps = [0.1, 0.25, 0.5, 1, 2, 2.5, 5, 10, 20];
+      const st = steps.find(x => span / x <= 6) || 20, out = [];
+      for (let g = Math.ceil(d0 / 1000 / st) * st; g <= d1 / 1000 + 1e-9; g += st) out.push(+g.toFixed(2));
+      return out; })();
+    var regionsIn = REGIONS.filter(([, a, b]) => b > d0 && a < d1).map(([lab, a, b]) => [lab, Math.max(a, d0), Math.min(b, d1)]);
+  } else {
+    y = f => T + ph - (Math.log(f) - Math.log(F_LO)) / (Math.log(F_HI) - Math.log(F_LO)) * ph;
+  }
+  const step = pw / Math.max(n, 1), bw = Math.max(big ? 3 : 1.6, Math.min(big ? 16 : 5, step * 0.62));
+  let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${n} frequency bands">`;
+  if (big) {
+    regionsIn.forEach(([lab, a, b], i) => {
+      const y1 = y(b), y2 = y(a);
+      s += `<rect x="${L}" y="${y1.toFixed(1)}" width="${pw}" height="${(y2 - y1).toFixed(1)}" fill="${i % 2 ? "#f7f7f7" : "#f3f1ea"}"/>` +
+           `<text x="${W - R + 4}" y="${((y1 + y2) / 2 + 3).toFixed(1)}" font-size="10" fill="#8b8b8b">${lab}</text>`;
+    });
+    ticks.forEach(g => {
+      const yy = y(g * 1000).toFixed(1);
+      s += `<line x1="${L - 3}" x2="${L + pw}" y1="${yy}" y2="${yy}" stroke="#e4e4e4" stroke-width="1"/>` +
+           `<text x="${L - 6}" y="${(+yy + 3).toFixed(1)}" font-size="10" text-anchor="end" fill="#6b6b6b">${g} GHz</text>`;
+    });
+  } else {
+    REGIONS.forEach(([, a, b], i) => { const y1 = y(Math.min(b, F_HI)), y2 = y(Math.max(a, F_LO));
+      s += `<rect x="${L}" y="${y1.toFixed(1)}" width="${pw}" height="${(y2 - y1).toFixed(1)}" fill="${i % 2 ? "#f6f6f6" : "#f4f2ec"}"/>`; });
+  }
+  bands.forEach(([id, lo, hi, met], i) => {
+    const x = L + step * i + (step - bw) / 2;
+    let y1 = y(hi), y2 = y(lo);
+    const minH = big ? 2.5 : 2;
+    if (y2 - y1 < minH) { const c = (y1 + y2) / 2; y1 = c - minH / 2; y2 = c + minH / 2; }
+    const col = !big ? "#6f6f6f" : met === "YES" ? "var(--good)" : met === "NO" ? "var(--bad)" : "#7a7a7a";
+    s += `<rect x="${x.toFixed(1)}" y="${y1.toFixed(1)}" width="${bw.toFixed(1)}" height="${(y2 - y1).toFixed(1)}" rx="${big ? 1.5 : .6}" fill="${col}"><title>Band ${id}: ${fmtGHz(lo)} – ${fmtGHz(hi)}</title></rect>`;
+  });
+  return s + "</svg>";
+}
+
+const RE = 6371;
+function globeSVG(shells, size, detail) {
+  const az = -35 * Math.PI / 180, el = 22 * Math.PI / 180, r2d = Math.PI / 180;
+  const rmax = Math.max(...shells.map(s => RE + s.apo));
+  const k = (size / 2 - 2) / rmax, c = size / 2, re = RE * k;
+  const proj = (x, y, z) => {
+    const x1 = x * Math.cos(az) - y * Math.sin(az), y1 = x * Math.sin(az) + y * Math.cos(az);
+    const y2 = y1 * Math.cos(el) - z * Math.sin(el), z2 = y1 * Math.sin(el) + z * Math.cos(el);
+    return [c + x1 * k, c - z2 * k, y2];                     // y2 > 0: behind the Earth's centre
+  };
+  const back = [], front = [];
+  shells.forEach(sh => {
+    const ra = RE + sh.apo, rp = RE + sh.peri, a = (ra + rp) / 2, e = (ra - rp) / (ra + rp);
+    const inc = sh.inc * r2d, w = (sh.argp || 0) * r2d;
+    const nPlanes = sh.inc === 0 ? 1 : Math.min(sh.planes, detail ? 18 : 8);
+    for (let j = 0; j < nPlanes; j++) {
+      const O = j * 2 * Math.PI / nPlanes;
+      let run = [], runBack = null;
+      const flush = () => { if (run.length > 1) (runBack ? back : front).push(run); run = []; };
+      for (let d = 0; d <= 360; d += 4) {
+        const nu = d * r2d, r = a * (1 - e * e) / (1 + e * Math.cos(nu));
+        let x = r * Math.cos(nu), y = r * Math.sin(nu), z = 0;
+        [x, y] = [x * Math.cos(w) - y * Math.sin(w), x * Math.sin(w) + y * Math.cos(w)];
+        [y, z] = [y * Math.cos(inc), y * Math.sin(inc)];
+        [x, y] = [x * Math.cos(O) - y * Math.sin(O), x * Math.sin(O) + y * Math.cos(O)];
+        const [sx, sy, depth] = proj(x, y, z);
+        const hidden = depth > 0 && Math.hypot(sx - c, sy - c) < re;
+        const isBack = depth > 0;
+        if (hidden) { flush(); runBack = null; continue; }
+        if (runBack !== null && runBack !== isBack) { const last = run[run.length - 1]; flush(); run.push(last); }
+        runBack = isBack; run.push([sx, sy]);
+      }
+      flush();
+    }
+  });
+  const path = runs => runs.map(r => "M" + r.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L")).join("");
+  const sw = detail ? 1.1 : .8;
+  const eq = []; for (let d = 0; d <= 360; d += 6) { const [x, y, dep] = proj(RE * Math.cos(d * r2d), RE * Math.sin(d * r2d), 0); if (dep <= 0) eq.push([x, y]); }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="Orbit sketch">` +
+    `<path d="${path(back)}" fill="none" stroke="var(--orbit)" stroke-width="${sw}" stroke-opacity=".3"/>` +
+    `<circle cx="${c}" cy="${c}" r="${re.toFixed(1)}" fill="var(--earth)" stroke="#cdcdcd" stroke-width="${detail ? 1 : .7}"/>` +
+    (re > 6 ? `<path d="M${eq.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L")}" fill="none" stroke="#d6d6d6" stroke-width=".7"/>` : "") +
+    `<path d="${path(front)}" fill="none" stroke="var(--orbit)" stroke-width="${sw}" stroke-opacity=".85"/></svg>`;
+}
+
 /* ---------- cells ---------- */
-const WIDE = new Set(["bureau_notes", "Definition", "networks", "source_note", "parse_problems", "milestone_progress"]);
+const WIDE = new Set(["bureau_notes", "networks", "source_note", "parse_problems", "milestone_progress"]);
 const MILESTONE_COLS = new Set(["M0", "M1", "M2", "M3"]);
 
 function statusClass(v) {
@@ -363,7 +523,7 @@ function statusClass(v) {
   if (s.startsWith("partially") || s.includes("resolves 12")) return "warn";
   if (s.startsWith("met") || s === "yes" || s.startsWith("100% deployed") || s.startsWith("at least")) return "good";
   if (s.startsWith("not met") || s === "no" || s.startsWith("deadline passed")) return "bad";
-  if (s.startsWith("as received") || s.startsWith("skipped")) return "info";
+  if (s.startsWith("as received") || s.startsWith("completed early")) return "info";
   return "";
 }
 
@@ -376,20 +536,25 @@ function netKey(name, adm) {
 function cell(t, s, r, col) {
   const v = r[s.idx[col]];
   const g = k => r[s.idx[k]];
+  const trig = (kind, payload, inner) =>
+    `<span class="term" tabindex="0" data-pop="${kind}" data-p="${esc(JSON.stringify(payload))}">${inner}</span>`;
+  if (col === "frequency_bands" || col === "orbits") {
+    const vz = v && DATA.viz[v];
+    const k = netKey(g("network_name"), g("adm"));
+    if (col === "frequency_bands") {
+      if (!vz || !vz.bands.some(b => b[1] > 0)) return `<td class="viz"><span class="na">No report yet</span></td>`;
+      return `<td class="viz">${trig("freq", { pid: v, k }, bandsSVG(vz.bands, false))}</td>`;
+    }
+    if (!vz || !vz.shells.length) return `<td class="viz"><span class="na">${vz ? "No planes listed" : "No report yet"}</span></td>`;
+    return `<td class="viz">${trig("orb", { pid: v, k }, globeSVG(vz.shells, 46, false))}</td>`;
+  }
   if (v == null || v === "") return `<td class="empty">·</td>`;
   const text = typeof v === "boolean" ? (v ? "Yes" : "No") : String(v);
-  const trig = (kind, payload, inner) =>
-    `<span class="lk" tabindex="0" data-pop="${kind}" data-p="${esc(JSON.stringify(payload))}">${inner}</span>`;
 
-  // links that are themselves URLs
-  if (/(_url|^Source)$/.test(col) && /^https?:/.test(text)) {
-    const label = col === "Source" ? new URL(text).hostname.replace(/^www\./, "") : "PDF";
-    return `<td><a class="ext" href="${esc(text)}" target="_blank" rel="noopener">${label} ↗</a></td>`;
-  }
-  // network names
+  if (/(_url)$/.test(col) && /^https?:/.test(text)) return `<td>${xl(text, "PDF")}</td>`;
   if (col === "network_name") {
     const k = netKey(text, g("adm") || (g("pdf_id") && DATA.pdfs[g("pdf_id")]?.adm));
-    return `<td>${k ? trig("net", { k, pdf: g("pdf_id") }, esc(text)) : esc(text)}</td>`;
+    return `<td>${k ? trig("net", { k }, esc(text)) : esc(text)}</td>`;
   }
   if (col === "networks") {
     return `<td class="wide">${text.split(", ").map(n => { const k = netKey(n); return k ? trig("net", { k }, esc(n)) : esc(n); }).join(", ")}</td>`;
@@ -398,35 +563,35 @@ function cell(t, s, r, col) {
     const [n, a] = text.split(" | "); const k = netKey(n, a);
     return `<td class="mono">${k ? trig("net", { k }, esc(text)) : esc(text)}</td>`;
   }
+  if (col === "adm_country") return `<td>${withFlag(text)}</td>`;
   if (col === "satellite_name" && s.idx.network_name != null) {
     const k = netKey(g("network_name"), g("adm"));
     return `<td>${trig("sat", { k, pdf: g("pdf_id"), name: text, ms: g("milestone") }, esc(text))}</td>`;
   }
-  if (col === "pdf_id" || ((col === "special_section" || col === "brific_number") && g("pdf_id"))) {
-    const id = col === "pdf_id" ? text : g("pdf_id");
-    const cls = col === "special_section" ? "" : "mono";
-    return `<td class="${cls}">${DATA.pdfs[id] ? trig("pdf", { id }, esc(text)) : esc(text)}</td>`;
+  if (col === "pdf_id") {
+    return `<td class="mono">${DATA.pdfs[text] ? trig("pdf", { id: text }, esc(text)) : esc(text)}</td>`;
   }
-  // milestone statuses in the Networks tab
   if (MILESTONE_COLS.has(col)) {
     const pid = DATA.milestone_pdf[g("network_key") + "|" + col];
-    const pill = `<span class="pill ${statusClass(text)}">${esc(text)}</span>`;
-    return `<td>${trig("ms", { id: pid || null, status: text, ms: col, k: netKey(g("network_name"), g("adm")) }, pill)}</td>`;
+    return `<td>${trig("ms", { id: pid || null, status: text, ms: col, k: netKey(g("network_name"), g("adm")) },
+      `<span class="pill ${statusClass(text)}">${esc(text)}</span>`)}</td>`;
   }
-  if (col === "milestone" && g("pdf_id") && DATA.pdfs[g("pdf_id")]) {
-    return `<td>${trig("pdf", { id: g("pdf_id") }, esc(text))}</td>`;
+  if (col === "status_clean") {
+    return `<td>${trig("ms", { id: g("pdf_id") || null, status: text, ms: g("milestone"), k: netKey(g("network_name"), g("adm")) },
+      `<span class="pill ${statusClass(text)}">${esc(text)}</span>`)}</td>`;
   }
-  if (col === "status_clean" || col === "met" || col === "milestone_progress" || col === "highest_milestone_met") {
+  if (col === "met" || col === "milestone_progress" || col === "highest_milestone_met") {
     const cls = col === "highest_milestone_met" ? "info" : statusClass(text);
     return `<td><span class="pill ${cls}">${esc(text)}</span></td>`;
   }
-  // notice IDs
   if (col === "br6a_br6b_id_no" || col === "itu_sat_id") {
     const ntc = col === "itu_sat_id" ? text.split("_")[0] : text;
     const p = DATA.pdfs[g("pdf_id")];
     const k = p ? netKey(p.name, p.adm) : null;
     return `<td class="mono">${k && /^\d+$/.test(ntc) ? trig("ntc", { k, ntc, col }, esc(text)) : esc(text)}</td>`;
   }
+  if (col === RATIO) return `<td class="num">${esc(text)}</td>`;
+  if (col === "pct_deployed" && typeof v === "number") return `<td class="num">${v.toLocaleString("en-US", { maximumFractionDigits: 1 })}%</td>`;
   if (/_minus_notified_/.test(col) && typeof v === "number") {
     const cls = v > 0 ? "d-plus" : v < 0 ? "d-minus" : "";
     return `<td class="num ${cls}">${v > 0 ? "+" : ""}${fmtN(v)}</td>`;
@@ -471,9 +636,8 @@ $("#tbl thead").addEventListener("click", e => {
 });
 $("#tbl thead").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.closest("th")) e.target.closest("th").click(); });
 
-// Keep a dropdown fully on screen: open below its button, or above when there is more room
-// there, never taller than the room available (the list scrolls inside), and nudged sideways
-// so it never runs off the left or right edge.
+// Keep a dropdown fully on screen: below its button, or above when there is more room there,
+// never taller than the room available, and nudged sideways so it never runs off an edge.
 function placeMenu(menu, btn, align) {
   const r = btn.getBoundingClientRect(), vw = innerWidth, vh = innerHeight, edge = 8, gap = 6;
   menu.style.maxHeight = "";
@@ -489,15 +653,14 @@ function placeMenu(menu, btn, align) {
 }
 function placeOpenMenus() {
   if (!$("#netMenu").hidden) placeMenu($("#netMenu"), $("#netBtn"), "left");
-  if (!$("#colMenu").hidden) placeMenu($("#colMenu"), $("#colBtn"), "right");
+  if (!$("#colMenu").hidden) placeMenu($("#colMenu"), $("#colBtn"), "left");
 }
 addEventListener("scroll", placeOpenMenus, { passive: true });
 addEventListener("resize", placeOpenMenus);
 
 function closeMenus() {
-  for (const [m, b] of [["#colMenu", "#colBtn"], ["#netMenu", "#netBtn"]]) { $(m).hidden = true; $(b).setAttribute("aria-expanded", "false"); }
+  for (const [mn, b] of [["#colMenu", "#colBtn"], ["#netMenu", "#netBtn"]]) { $(mn).hidden = true; $(b).setAttribute("aria-expanded", "false"); }
 }
-const closeCols = closeMenus;
 
 /* network filter: pick one or more networks to compare */
 function netLabel() {
@@ -512,7 +675,7 @@ function netList(filter = "") {
   const adm = name => [...new Set(Object.values(DATA.networks).filter(x => x.name === name).map(x => x.adm))].join(", ");
   return ALL_NETS.filter(n => !f || n.toLowerCase().includes(f)).map((n, i) =>
     `<label><input type="checkbox" id="net-${i}-${esc(n).replace(/[^\w-]/g, "_")}" value="${esc(n)}" ${netSel.has(n) ? "checked" : ""}> ${esc(n)}<span class="adm">${esc(adm(n))}</span></label>`).join("")
-    || `<p class="note" style="margin:6px;color:var(--muted)">No network matches.</p>`;
+    || `<p style="margin:6px;color:var(--muted)">No network matches.</p>`;
 }
 $("#netBtn").addEventListener("click", e => {
   e.stopPropagation();
@@ -529,7 +692,7 @@ $("#netMenu").addEventListener("click", e => {
   e.stopPropagation();
   const b = e.target.closest("button[data-net]"); if (!b) return;
   if (b.dataset.net === "none") netSel.clear();
-  else $("#netItems").querySelectorAll("input").forEach(x => netSel.add(x.value));   // all shown (after Find)
+  else $("#netItems").querySelectorAll("input").forEach(x => netSel.add(x.value));
   $("#netItems").querySelectorAll("input").forEach(x => x.checked = netSel.has(x.value));
   netLabel(); stFor(cur).page = 0; render();
 });
@@ -549,7 +712,7 @@ $("#colBtn").addEventListener("click", e => {
   menu.innerHTML = `<div class="mhead"><div class="row"><button data-all="1">Show all</button><button data-all="0">Defaults</button></div></div>` +
     cur.columns.map((c, i) => `<label><input type="checkbox" id="col-${cur.id}-${i}" value="${esc(c)}" ${s.visible.includes(c) ? "checked" : ""} ${i === 0 ? "disabled" : ""}> ${esc(c)}</label>`).join("");
   menu.hidden = false; $("#colBtn").setAttribute("aria-expanded", "true");
-  placeMenu(menu, $("#colBtn"), "right");
+  placeMenu(menu, $("#colBtn"), "left");
 });
 $("#colMenu").addEventListener("click", e => e.stopPropagation());
 $("#colMenu").addEventListener("change", e => {
@@ -571,81 +734,106 @@ document.addEventListener("click", () => closeMenus());
 const pop = $("#pop");
 let showT, hideT, pinned = false, anchor = null;
 
-const go = (url, label, sub) => `<a class="go" href="${esc(url)}" target="_blank" rel="noopener"><b>${label} ↗</b>${sub ? `<small>${esc(sub)}</small>` : ""}</a>`;
-const NOTICE = { "11.2": "Notification (Art. 11)", "9.6": "Coordination request (No. 9.6)",
-  "9.1/IA": "Advance publication (No. 9.1)", "RS35": "Res 35 submission", "RS8": "Res 8 submission",
-  "RS49": "Res 49 due diligence" };
-const noticeLabel = x => NOTICE[x.provision] || `${x.category} ${x.provision || ""}`;
-const msLabel = { M0: "M0 · initial deployment", M1: "M1 · 10% deployed", M2: "M2 · 50% deployed", M3: "M3 · 100% deployed" };
+const FILING = { "9.1/IA": "Advance publication", "9.6": "Coordination request", "11.2": "Notification",
+  "RS49": "Res 49 due diligence", "RS35": "Res 35 milestone report", "RS8": "Res 8 submission" };
+const filingLabel = x => FILING[x.provision] || `${x.category} (${x.provision || "?"})`;
+const MS_LABEL = { M0: "M0 · initial deployment", M1: "M1 · 10% deployed", M2: "M2 · 50% deployed", M3: "M3 · 100% deployed" };
+const fmtDate = d => d ? new Date(d + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : "";
+const mini = (head, rows) => `<table class="mini"><thead><tr>${head.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>`;
 
-function netBlock(k, opts = {}) {
-  const n = DATA.networks[k]; if (!n) return "";
-  let h = "";
-  if (n.page) h += go(n.page.url, `${esc(n.name)} in ITU Space Explorer`, `${n.page.category.toLowerCase()} notice ${n.page.ntc_id}`);
-  else h += `<p class="note">${esc(n.name)} (${esc(n.adm)}) is not in the ITU Space Explorer under this name (checked ${esc(DATA.meta.notices_checked || "")}). It may have been renamed or suppressed.</p>`;
-  if (!opts.noPdfs && n.pdfs.length) {
-    h += `<div class="sec"><div class="k">Res 35 milestone PDFs</div><ul>` +
-      n.pdfs.map(p => `<li><a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.milestone)} · ${esc(p.pdf_id)}</a><span>BR IFIC ${esc(p.brific_date || "")}</span></li>`).join("") + "</ul></div>";
-  }
-  if (!opts.noNotices && n.notices.length) {
-    h += `<div class="sec"><div class="k">All notices for this network</div><ul>` +
-      n.notices.map(x => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${x.ntc_id}</a><span>${esc(noticeLabel(x))} · ${esc(x.received || "")}</span></li>`).join("") + "</ul></div>";
+function spaceExplorer(n) {
+  return n.page ? xl(n.page.url, "ITU Space Explorer")
+    : `<span class="note">Not in the ITU Space Explorer under this name (checked ${esc(DATA.meta.notices_checked || "")}).</span>`;
+}
+
+function networkCard(k) {
+  const n = DATA.networks[k];
+  let h = `<div class="k">Satellite network · ${withFlag(n.country || n.adm)}</div><strong class="t">${esc(n.name)}</strong>`;
+  h += `<div class="go">${spaceExplorer(n)}</div>`;
+  h += `<div class="sec"><div class="k">Res 35 milestone reports</div>`;
+  h += n.pdfs.length
+    ? mini(["Milestone", "Report", "Published"], n.pdfs.map(p =>
+        `<tr><td>${esc(p.milestone)}</td><td>${xl(p.url, esc(p.pdf_id))}</td><td>${esc(fmtDate(p.brific_date))}</td></tr>`)) +
+      `<p class="fn">Published = the date the ITU published the report in its BR IFIC, the Bureau's regular circular of new and updated satellite filings.</p>`
+    : `<p class="note">No milestone report has been published yet.</p>`;
+  h += `</div>`;
+  if (n.filings.length) {
+    h += `<div class="sec"><div class="k">ITU filings for this network</div>` +
+      mini(["Filing", "Notice ID", "Received"], n.filings.map(x =>
+        `<tr><td>${esc(filingLabel(x))}</td><td class="n">${x.ntc_id}</td><td>${esc(fmtDate(x.received))}</td></tr>`)) +
+      `<p class="fn">Each submission to the ITU gets its own notice ID. Received = the date the Bureau received it.</p></div>`;
   }
   return h;
 }
 
-function pdfBlock(id) {
+function pdfLine(id) {
   const p = DATA.pdfs[id]; if (!p) return "";
-  return go(p.url, `Open milestone PDF`, id) +
-    `<dl class="meta"><dt>Network</dt><dd>${esc(p.name)} (${esc(p.adm)})</dd><dt>Milestone</dt><dd>${esc(msLabel[p.milestone] || p.milestone)}</dd>` +
-    `<dt>Special Section</dt><dd>${esc(p.special_section || "")}</dd><dt>BR IFIC</dt><dd>${esc(p.brific_number || "")} · ${esc(p.brific_date || "")}</dd></dl>`;
+  return `<div class="go">${xl(p.url, `Milestone report ${esc(id)} (PDF)`)}</div>` +
+    `<p class="fn">${esc(MS_LABEL[p.milestone] || p.milestone)} · published ${esc(fmtDate(p.brific_date))}</p>`;
 }
 
 function content(kind, p) {
   if (kind === "col") {
-    const d = cur.defs[p.col];
-    let h = `<div class="k">Column</div><h3>${esc(p.col)}</h3>`;
-    if (!d) return h + `<p class="note">No definition yet. Add one to docs/column_definitions.csv.</p>`;
-    if (d.definition) h += `<p>${esc(d.definition)}</p>`;
-    if (d.itu && d.itu !== "nan") h += `<dl class="meta"><dt>ITU label</dt><dd>${esc(d.itu)}</dd></dl>`;
-    if (d.source_url) h += go(d.source_url, esc(d.source_name || "Source"), new URL(d.source_url).hostname.replace(/^www\./, ""));
-    else if (d.source_name) h += `<p class="note">Source: ${esc(d.source_name)}</p>`;
-    return h + `<p class="note">Click the column name to sort.</p>`;
+    const d = definition(p.col, cur.defs[p.col] || {});
+    let h = `<div class="k">Column</div><strong class="t">${esc(d.title)}</strong>${d.html}`;
+    const itu = cur.defs[p.col] && cur.defs[p.col].itu;
+    if (itu && itu !== "nan" && itu !== "(none; added by us)") h += `<p class="fn">ITU label: ${esc(itu)}</p>`;
+    return h + `<p class="fn">Click the column name to sort.</p>`;
   }
   if (kind === "stat") {
     const x = m.stats[p.i];
-    return `<div class="k">Summary</div><h3>${fmtN(x.n)} ${esc(x.label.toLowerCase())}</h3><p>${esc(x.note)}</p>`;
+    return `<div class="k">Summary</div><strong class="t">${fmtN(x.n)} ${esc(x.label.toLowerCase())}</strong><p>${esc(x.note)}</p>`;
   }
-  if (kind === "net") {
-    const n = DATA.networks[p.k];
-    return `<div class="k">Satellite network · ${esc(n.adm)}</div><h3>${esc(n.name)}</h3>` + netBlock(p.k);
-  }
+  if (kind === "net") return networkCard(p.k);
   if (kind === "pdf") {
-    const pd = DATA.pdfs[p.id]; const k = netKey(pd.name, pd.adm);
-    return `<div class="k">Res 35 milestone PDF</div><h3>${esc(p.id)}</h3>` + pdfBlock(p.id) +
-      (k ? `<div class="sec">${netBlock(k, { noPdfs: true, noNotices: true })}</div>` : "");
+    const pd = DATA.pdfs[p.id];
+    return `<div class="k">Res 35 milestone report · ${esc(pd.name)}</div><strong class="t">${esc(p.id)}</strong>` + pdfLine(p.id);
   }
   if (kind === "ms") {
-    let h = `<div class="k">${esc(msLabel[p.ms] || p.ms)}</div><h3>${esc(p.status)}</h3>`;
-    h += p.id ? pdfBlock(p.id) : `<p class="note">No PDF has been published for this milestone yet.</p>`;
-    if (p.k) h += `<div class="sec">${netBlock(p.k, { noPdfs: true, noNotices: true })}</div>`;
+    const d = definition(p.status, { definition: G.fallback[p.status] });
+    let h = `<div class="k">${esc(MS_LABEL[p.ms] || p.ms || "Milestone")}</div><strong class="t">${esc(d.title)}</strong>${d.html}`;
+    const n = p.k && DATA.networks[p.k];
+    if (p.id) h += `<div class="sec">${pdfLine(p.id)}</div>`;
+    else if (p.status === "As Received" && n) {
+      h += `<div class="sec">` + (n.as_received.length
+        ? `<div class="go">${n.as_received.map(a => xl(a.url, `As-received report, received ${esc(fmtDate(a.received))}`)).join("")}</div>` +
+          `<p class="fn">The files exactly as the administration sent them, before the Bureau examined them.</p>`
+        : `<p class="note">The report is no longer on the ITU's As Received list. It may have just been published.</p>`) + `</div>`;
+    }
     return h;
   }
   if (kind === "sat") {
-    let h = `<div class="k">Satellite reported in ${esc(p.ms || "")}</div><h3>${esc(p.name)}</h3>`;
-    if (p.pdf) h += pdfBlock(p.pdf);
-    if (p.k) h += `<div class="sec">${netBlock(p.k, { noPdfs: true, noNotices: true })}</div>`;
-    return h;
+    return `<div class="k">Satellite reported in ${esc(p.ms || "")}</div><strong class="t">${esc(p.name)}</strong>` +
+      (p.pdf ? pdfLine(p.pdf) : "");
   }
   if (kind === "ntc") {
     const n = DATA.networks[p.k];
     const url = `https://www.itu.int/itu-r/space/apps/public/spaceexplorer/networks-explorer/space-stations/dashboard/non-plans/${encodeURIComponent(n.name)}/${p.ntc}`;
-    const known = n.notices.find(x => String(x.ntc_id) === String(p.ntc));
-    let h = `<div class="k">${p.col === "itu_sat_id" ? "Notice ID in this ITU_SAT_ID" : "Notice ID referenced in the PDF"}</div><h3>${esc(p.ntc)}</h3>`;
-    h += go(url, `This notice in ITU Space Explorer`, known ? `${noticeLabel(known)} · ${known.received}` : "not in the network's current notice list");
-    if (n.page && String(n.page.ntc_id) !== String(p.ntc))
-      h += `<p class="note">The network's current ${n.page.category.toLowerCase()} notice is ${n.page.ntc_id}.</p>`;
-    return h + `<div class="sec">${netBlock(p.k, { noPdfs: true, noNotices: true })}</div>`;
+    const known = n.filings.find(x => String(x.ntc_id) === String(p.ntc));
+    return `<div class="k">${p.col === "itu_sat_id" ? "Notice ID in this ITU_SAT_ID" : "Notice ID in the report"}</div><strong class="t">${esc(p.ntc)}</strong>` +
+      `<p>${known ? `${esc(filingLabel(known))}, received ${esc(fmtDate(known.received))}.` : "An earlier filing that has since been replaced."}</p>` +
+      `<div class="go">${xl(url, "This filing in ITU Space Explorer")}</div>`;
+  }
+  if (kind === "freq") {
+    const v = DATA.viz[p.pid], n = DATA.networks[p.k];
+    const met = v.bands.filter(b => b[3] === "YES").length, notMet = v.bands.filter(b => b[3] === "NO").length;
+    let h = `<div class="k">Frequency bands · ${esc(n.name)}</div><strong class="t">${v.bands.length} band${v.bands.length === 1 ? "" : "s"} in the ${esc(v.milestone)} report</strong>`;
+    h += `<p>Each bar spans one band, from its lowest to its highest frequency. This view is zoomed to the network's own range; the small chart in the table uses one scale (${fmtGHz(F_LO)} to ${fmtGHz(F_HI)}) for every network.` +
+      (met || notMet ? ` <span style="color:var(--good)">Green</span>: the milestone was met in that band; <span style="color:var(--bad)">red</span>: not met.` : "") + `</p>`;
+    h += `<div class="chart">${bandsSVG(v.bands, true)}</div>`;
+    h += `<div class="scroll">` + mini(["Band", "From", "To", "Deployed / notified", "Met"], v.bands.map(b =>
+      `<tr><td class="n">${b[0]}</td><td class="n">${fmtGHz(b[1])}</td><td class="n">${fmtGHz(b[2])}</td><td class="n">${b[5] ?? "·"} / ${b[4] ?? "·"}</td><td>${b[3] === "YES" ? "Yes" : b[3] === "NO" ? "No" : "·"}</td></tr>`)) + `</div>`;
+    return h + `<p class="fn">Ku, Ka and Q/V are the usual satellite-industry names for those ranges.</p>`;
+  }
+  if (kind === "orb") {
+    const v = DATA.viz[p.pid], n = DATA.networks[p.k];
+    const planes = v.shells.reduce((a, s) => a + s.planes, 0);
+    const alt = s => s.apo === s.peri ? `${fmtN(s.apo)} km` : `${fmtN(s.peri)}–${fmtN(s.apo)} km`;
+    let h = `<div class="k">Notified orbits · ${esc(n.name)}</div><strong class="t">${fmtN(planes)} orbital plane${planes === 1 ? "" : "s"} in the ${esc(v.milestone)} report</strong>`;
+    h += `<div class="chart" style="text-align:center">${globeSVG(v.shells, 210, true)}</div>`;
+    h += mini(["Altitude", "Inclination", "Planes", "Satellites"], v.shells.map(s =>
+      `<tr><td class="n">${alt(s)}</td><td class="n">${s.inc}°</td><td class="n">${fmtN(s.planes)}</td><td class="n">${fmtN(s.deployed ?? 0)} / ${fmtN(s.notified ?? 0)}</td></tr>`));
+    return h + `<p class="fn">Altitudes are above the Earth's surface; satellites are deployed / notified. The reports give each plane's altitude and inclination but not where it crosses the equator, so planes are spread evenly around the Earth here for illustration. A detailed orbit view will replace this sketch.</p>`;
   }
   return "";
 }
@@ -677,6 +865,7 @@ function openPop(el) {
   let p; try { p = JSON.parse(el.dataset.p); } catch { return; }
   const html = content(el.dataset.pop, p); if (!html) return;
   anchor = el;
+  pop.className = ["net", "freq", "orb"].includes(el.dataset.pop) ? "wide" : "";
   pop.innerHTML = (pinned ? `<span class="pin">Pinned · Esc to close</span>` : "") + html;
   pop.hidden = false; place(el);
 }
