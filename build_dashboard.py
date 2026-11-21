@@ -116,7 +116,7 @@ ISO2_BY_ADM = {"CHN": "CN", "F": "FR", "D": "DE", "ISR": "IL", "LIE": "LI", "LUX
                "THA": "TH", "VTN": "VN", "PHL": "PH", "NZL": "NZ", "AFS": "ZA", "EGY": "EG", "NIG": "NG",
                "KAZ": "KZ", "UKR": "UA", "POL": "PL", "CZE": "CZ", "GRC": "GR", "POR": "PT", "IRL": "IE",
                "MCO": "MC", "CYP": "CY", "MLT": "MT", "QAT": "QA", "BHR": "BH", "OMA": "OM", "PAK": "PK",
-               "BGD": "BD", "LAO": "LA", "TON": "TO", "BLR": "BY", "AZE": "AZ", "ARM": "AM", "GEO": "GE"}
+               "BGD": "BD", "LAO": "LA", "GUF": "GF", "TON": "TO", "BLR": "BY", "AZE": "AZ", "ARM": "AM", "GEO": "GE"}
 
 
 def flag(adm):
@@ -180,10 +180,12 @@ def definitions_for(sheet, columns, defs):
 
 
 def add_country_flags(df):
-    if "adm_country" in df.columns and "adm" in df.columns:
-        df = df.copy()
-        df["adm_country"] = [f"{c} {flag(a)}".strip() if isinstance(c, str) else c
-                             for c, a in zip(df["adm_country"], df["adm"])]
+    """Put the country's flag after its name, e.g. 'France 🇫🇷'."""
+    df = df.copy()
+    for name_col, code_col in [("adm_country", "adm"), ("launch_country_name", "launch_country")]:
+        if name_col in df.columns and code_col in df.columns:
+            df[name_col] = [f"{c} {flag(a)}".strip() if isinstance(c, str) else c
+                            for c, a in zip(df[name_col], df[code_col])]
     return df
 
 
@@ -399,9 +401,10 @@ def main():
           f"{len(data['glossary']['entries'])} ESPL glossary entries; {n_drafts} draft terms in {DRAFTS.name}")
     if missing:
         print(f"  no Space Explorer link for: {', '.join(missing)}")
-    unknown = sorted({str(a) for a in overview["adm"].dropna() if str(a) not in ISO2_BY_ADM})
+    codes = set(overview["adm"].dropna().astype(str)) | set(book["launches"]["launch_country"].dropna().astype(str))
+    unknown = sorted(c for c in codes if c not in ISO2_BY_ADM)
     if unknown:
-        print(f"  no flag for ADM code(s): {', '.join(unknown)} (add to ISO2_BY_ADM)")
+        print(f"  no flag for ADM code(s): {', '.join(unknown)} (add them to ISO2_BY_ADM)")
 
 
 if __name__ == "__main__":

@@ -563,7 +563,7 @@ function cell(t, s, r, col) {
     const [n, a] = text.split(" | "); const k = netKey(n, a);
     return `<td class="mono">${k ? trig("net", { k }, esc(text)) : esc(text)}</td>`;
   }
-  if (col === "adm_country") return `<td>${withFlag(text)}</td>`;
+  if (col === "adm_country" || col === "launch_country_name") return `<td>${withFlag(text)}</td>`;
   if (col === "satellite_name" && s.idx.network_name != null) {
     const k = netKey(g("network_name"), g("adm"));
     return `<td>${trig("sat", { k, pdf: g("pdf_id"), name: text, ms: g("milestone") }, esc(text))}</td>`;
