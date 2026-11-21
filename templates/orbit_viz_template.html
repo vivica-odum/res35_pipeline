@@ -1,0 +1,1206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Res 8 Orbital Tolerance Viewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Condensed:wght@600;700&family=Roboto+Mono:wght@400;500&display=swap">
+<style>
+/* ESPL house style (same tokens as res35_dashboard.html): white ground, grey hairlines,
+   Roboto / Roboto Condensed, Tech Gold headings, the lab's yellow for the planned orbits. */
+:root {
+  --bg: #ffffff; --surface: #ffffff; --sunk: #f5f5f5; --stage: #0b0f14;
+  --ink: #262626; --muted: #6b6b6b; --line: #dddddd;
+  --accent: #b88b13; --yellow: #eaaa00; --head: #a4925a; --link: #74652f;
+  --gold-soft: #fbf3d6; --hover: #fffaea; --navy: #003057;
+  --good: #2e7d4f; --warn: #d9822b; --bad: #b3261e; --na: #8f8f8f;
+  --shadow: 0 12px 35px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.05);
+  --logo-filter: none;
+  --f-display: "Roboto Condensed", "Arial Narrow", Arial, sans-serif;
+  --f-body: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --f-mono: "Roboto Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+  --bg: #121212; --surface: #1b1b1b; --sunk: #232323; --stage: #0b0f14;
+  --ink: #ececec; --muted: #a6a6a6; --line: #333333;
+  --accent: #eaaa00; --yellow: #eaaa00; --head: #c9b26f; --link: #e5c66b;
+  --gold-soft: #2c2510; --hover: #24200f; --navy: #9cc0e6;
+  --good: #6fcf97; --warn: #f0a36b; --bad: #f08a80; --na: #8a8a8a;
+  --shadow: 0 12px 35px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.3);
+  --logo-filter: invert(1);
+  color-scheme: dark;
+}
+}
+:root[data-theme="dark"] {
+  --bg: #121212; --surface: #1b1b1b; --sunk: #232323; --stage: #0b0f14;
+  --ink: #ececec; --muted: #a6a6a6; --line: #333333;
+  --accent: #eaaa00; --yellow: #eaaa00; --head: #c9b26f; --link: #e5c66b;
+  --gold-soft: #2c2510; --hover: #24200f; --navy: #9cc0e6;
+  --good: #6fcf97; --warn: #f0a36b; --bad: #f08a80; --na: #8a8a8a;
+  --shadow: 0 12px 35px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.3);
+  --logo-filter: invert(1);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 13.5px/1.45 var(--f-body); overflow: hidden; font-variant-numeric: tabular-nums; }
+a { color: var(--link); }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.app { display: grid; grid-template-columns: 300px minmax(0,1fr) 340px; height: 100vh; }
+.panel { background: var(--surface); overflow-y: auto; overscroll-behavior: contain; }
+.left { border-right: 1px solid var(--line); }
+.right { border-left: 1px solid var(--line); }
+.sec { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.sec:last-child { border-bottom: 0; }
+h1 { text-wrap: balance; font: 700 21px/1.15 var(--f-display); color: var(--head); margin: 10px 0 4px; letter-spacing: .01em; }
+h2 { font: 700 13px/1.2 var(--f-display); color: var(--head); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 10px; }
+.sub { color: var(--muted); font-size: 12.5px; margin: 0; }
+.logo img { height: 34px; width: auto; filter: var(--logo-filter); display: block; }
+.mono { font-family: var(--f-mono); font-size: 12px; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+
+/* network list */
+.search { width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--sunk); }
+.netlist { display: grid; gap: 2px; margin-top: 10px; }
+.net { border-radius: 8px; }
+.net.on { background: var(--hover); }
+.netrow { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; padding: 6px 6px 6px 8px; }
+.netrow label { display: contents; cursor: pointer; }
+.netname { font-weight: 500; }
+.netname .adm { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 4px; }
+.netmeta { grid-column: 2 / 4; color: var(--muted); font-size: 11.5px; margin-top: -4px; }
+.exp { border: 0; background: none; cursor: pointer; color: var(--muted); padding: 2px 6px; border-radius: 6px; font-size: 12px; }
+.exp:hover { background: var(--sunk); color: var(--ink); }
+.netbody { padding: 0 8px 10px 30px; display: grid; gap: 6px; }
+.chip { display: inline-block; font-size: 10.5px; padding: 1px 6px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.chip.gold { border-color: var(--accent); color: var(--accent); }
+.shell { display: grid; grid-template-columns: auto 1fr auto; gap: 6px; align-items: center; font-size: 12px; }
+.linkbtn { border: 0; background: none; color: var(--link); cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 2px; font-size: 12px; }
+.satlist { max-height: 220px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; }
+.satbtn { display: flex; align-items: center; gap: 7px; width: 100%; border: 0; background: none; text-align: left; padding: 3px 8px; cursor: pointer; font-size: 12px; }
+.satbtn:hover, .satbtn.cur { background: var(--gold-soft); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--na); }
+.dot.good { background: var(--good); } .dot.warn { background: var(--warn); } .dot.bad { background: var(--bad); }
+.sq { width: 9px; height: 9px; flex: none; background: var(--yellow); border: 1px solid var(--accent); }
+
+/* stage */
+.stage { position: relative; background: var(--stage); min-width: 0; }
+.stage canvas.gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.bar { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; pointer-events: none; }
+.bar > * { pointer-events: auto; }
+.pill { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 5px 8px; box-shadow: var(--shadow); }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 4px 10px; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--hover); border-color: var(--accent); }
+.btn.on { background: var(--gold-soft); border-color: var(--accent); }
+.btn.play { min-width: 36px; font-weight: 700; }
+.clock { font: 500 12px var(--f-mono); color: var(--muted); min-width: 160px; }
+input[type=range] { accent-color: var(--accent); }
+.legend { position: absolute; left: 12px; bottom: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; box-shadow: var(--shadow); font-size: 11.5px; display: grid; gap: 4px; max-width: 330px; }
+.legend .row { display: flex; align-items: center; gap: 8px; }
+.lg-box { width: 10px; height: 10px; background: var(--yellow); border: 1px solid #6b5208; flex: none; }
+.lg-sph { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.lg-tol { width: 22px; height: 12px; background: rgba(234,170,0,.3); border: 1.5px solid var(--accent); flex: none; }
+.lg-out { width: 22px; height: 12px; border: 1px solid var(--accent); opacity: .55; flex: none; }
+.lg-trail { width: 22px; height: 0; border-top: 3px solid #ffffff; outline: 1px solid var(--line); flex: none; }
+.note { position: absolute; right: 12px; bottom: 12px; max-width: 360px; background: var(--surface); border: 1px solid var(--accent); border-radius: 10px; padding: 8px 10px; font-size: 12px; box-shadow: var(--shadow); }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; font-size: 12px; box-shadow: var(--shadow); max-width: 280px; z-index: 5; }
+.tip b { font-weight: 500; }
+.loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); }
+
+/* right panel */
+.field { display: grid; gap: 4px; margin-bottom: 10px; }
+.field > span { font-size: 12px; color: var(--muted); }
+.radio { display: grid; gap: 4px; }
+.radio label { display: grid; grid-template-columns: auto 1fr; gap: 6px; align-items: start; cursor: pointer; font-size: 12.5px; }
+.radio small { display: block; color: var(--muted); font-size: 11.5px; }
+.check { display: flex; gap: 6px; align-items: center; font-size: 12.5px; cursor: pointer; margin: 3px 0; }
+.slider { display: grid; grid-template-columns: 1fr 64px; gap: 8px; align-items: center; }
+.slider output { font: 12px var(--f-mono); text-align: right; }
+select { padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--sunk); width: 100%; }
+table.dev { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+table.dev th, table.dev td { padding: 3px 4px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+table.dev th:first-child, table.dev td:first-child { text-align: left; }
+table.dev th { font-weight: 500; color: var(--muted); font-size: 11px; }
+.ok { color: var(--good); } .wn { color: var(--warn); } .bd { color: var(--bad); }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 12.5px; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; }
+.focus-title { font: 700 17px/1.2 var(--f-display); margin: 0 0 2px; }
+.btnrow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+canvas.devplot { width: 100%; height: 240px; display: block; background: var(--sunk); border-radius: 8px; }
+.stats { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; font-size: 12.5px; margin-top: 8px; }
+.stats .n { font-family: var(--f-mono); text-align: right; }
+details summary { cursor: pointer; color: var(--head); font: 700 13px var(--f-display); text-transform: uppercase; letter-spacing: .06em; }
+details p, details li { font-size: 12.5px; }
+details ul { padding-left: 18px; margin: 6px 0; }
+
+@media (max-width: 1100px) {
+  body { overflow: auto; }
+  .app { grid-template-columns: 1fr; height: auto; }
+  .stage { height: 70vh; order: -1; }
+  .left, .right { border: 0; border-top: 1px solid var(--line); overflow: visible; }
+  .clock { min-width: 0; }
+}
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div class="app">
+  <!-- ======================= left: networks ======================= -->
+  <aside class="panel left">
+    <div class="sec">
+      <a class="logo" href="https://espl.ae.gatech.edu/" target="_blank" rel="noopener"><img src="__ESPL_LOGO__" alt="Georgia Tech ESPL"></a>
+      <h1>Planned orbits vs. Resolution 8 tolerances</h1>
+      <p class="sub">Notified orbital planes from the latest Res 35 milestone PDF of each network, with the WRC-23 Resolution 8 orbital tolerances drawn around each planned satellite.</p>
+    </div>
+    <div class="sec">
+      <h2>Networks</h2>
+      <input class="search" id="netSearch" type="search" placeholder="Filter networks or satellites" aria-label="Filter networks or satellites">
+      <div class="netlist" id="netList"></div>
+    </div>
+  </aside>
+
+  <!-- ======================= centre: 3D ======================= -->
+  <main class="stage" id="stage">
+    <div class="loading" id="loading">Loading 3D view…</div>
+    <div class="bar">
+      <div class="pill">
+        <button class="btn play" id="play" title="Play / pause (space)">❚❚</button>
+        <input type="range" id="speed" min="0" max="100" step="0.5" value="69.5" aria-label="Simulation speed" style="width:120px">
+        <span class="clock" id="clock">×600</span>
+      </div>
+      <div class="pill">
+        <button class="btn" id="resetTrails" title="Clear the traced orbits and envelopes and draw them again">Retrace</button>
+        <button class="btn" id="follow" title="Keep the camera on the focused satellite">Follow</button>
+        <button class="btn" id="fit" title="Show the whole Earth and every shown orbit">Fit view</button>
+        <button class="btn" id="theme" title="Light / dark">◐</button>
+      </div>
+    </div>
+    <div class="legend" id="legend">
+      <div class="row"><span class="lg-box"></span>Planned satellite slot (a box: not a real satellite)</div>
+      <div class="row"><span class="lg-sph" style="background:var(--good)"></span><span class="lg-sph" style="background:var(--warn)"></span><span class="lg-sph" style="background:var(--bad)"></span>Reported satellite (sphere), by tolerance status</div>
+      <div class="row"><span class="lg-trail"></span>Planned orbit (white), drawn once a satellite has flown it</div>
+      <div class="row"><span class="lg-tol"></span><span id="lgTolText">Res 8 tolerance (resolves 6)</span></div>
+      <div class="row" id="lgOuterRow"><span class="lg-out"></span>Outer outline: resolves 7 limit</div>
+    </div>
+    <div class="note" id="note" hidden></div>
+    <div class="tip" id="tip" hidden></div>
+  </main>
+
+  <!-- ======================= right: controls + focus ======================= -->
+  <aside class="panel right">
+    <div class="sec" id="focusSec" hidden>
+      <h2>Selected</h2>
+      <div id="focusCard"></div>
+    </div>
+    <div class="sec">
+      <h2>Tolerance</h2>
+      <div class="radio" id="tierRadio">
+        <label><input type="radio" name="tier" value="r6" checked><span>Resolves 6 <small>±70 km apogee/perigee, ±2° (≤2,000 km); ±5%, ±3° above. Explanation required.</small></span></label>
+        <label><input type="radio" name="tier" value="r7"><span>Resolves 7 <small>±100 km, ±3° (≤2,000 km); ±10%, ±4° above. Explanation plus technical demonstration.</small></span></label>
+        <label><input type="radio" name="tier" value="r11"><span>Resolves 11 <small>±30 km; ±2° (≤2,000 km), ±3° above. Limit after the milestone check; may be exceeded for at most 60 consecutive days.</small></span></label>
+        <label><input type="radio" name="tier" value="custom"><span>Custom (test a tighter rule) <small>Same limit for every network.</small></span></label>
+      </div>
+      <div id="customBox" hidden style="margin-top:8px">
+        <div class="field"><span>Apogee / perigee altitude ±</span>
+          <div class="slider"><input type="range" id="cKm" min="0" max="150" step="1" value="40"><output id="cKmOut">40 km</output></div></div>
+        <div class="field"><span>Inclination ±</span>
+          <div class="slider"><input type="range" id="cDeg" min="0" max="5" step="0.05" value="1"><output id="cDegOut">1.00°</output></div></div>
+      </div>
+      <label class="check"><input type="checkbox" id="outer" checked> Outline the resolves 7 limit too</label>
+      <div class="field" style="margin-top:8px"><span>How the inclination tolerance is drawn</span>
+        <select id="mode">
+          <option value="figure">Constant width ±Δi (as in the 2D figure)</option>
+          <option value="geometric">Geometric: orbits tilted ±Δi about the node line</option>
+        </select>
+        <small class="muted" id="modeHelp"></small>
+      </div>
+      <div class="field"><span>Exaggerate deviations (tolerances and reported offsets)</span>
+        <div class="slider"><input type="range" id="exag" min="1" max="10" step="0.5" value="1"><output id="exagOut">×1</output></div></div>
+      <div class="field"><span>Show the tolerance for</span>
+        <select id="env"><option value="focus">Selected satellite or shell only</option><option value="all">Every shown plane (up to 80)</option><option value="off">Off</option></select></div>
+    </div>
+    <div class="sec">
+      <h2>Display</h2>
+      <label class="check"><input type="checkbox" id="showBoxes" checked> Planned satellite slots (boxes)</label>
+      <label class="check"><input type="checkbox" id="showSph" checked> Reported satellites (spheres)</label>
+      <label class="check"><input type="checkbox" id="ghost"> Faint full orbit before it is traced</label>
+      <label class="check"><input type="checkbox" id="isoFocus" checked> Selecting a satellite shows it alone</label>
+      <div class="field" style="margin-top:6px"><span>Marker size on screen</span>
+        <div class="slider"><input type="range" id="marker" min="2" max="16" step="1" value="6"><output id="markerOut">6 px</output></div>
+        <small class="muted">Inside a tolerance box a marker is never taller than a quarter of the box, so the box stays to scale. A real satellite (metres across) would be far too small to see.</small></div>
+    </div>
+    <div class="sec">
+      <h2>Deviation space</h2>
+      <canvas class="devplot" id="devplot" aria-label="Reported minus notified orbit for each reported satellite"></canvas>
+      <p class="small muted" id="devCaption" style="margin:6px 0 0"></p>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="sec">
+      <details>
+        <summary>How to read this</summary>
+        <ul>
+          <li><b>Boxes</b> are planned satellite slots from the notified orbital planes (Res 35 PDF, A.4.b items). <b>Spheres</b> are the satellites the PDF reports as deployed, drawn on the orbit the PDF reports for them.</li>
+          <li><b>RAAN and phasing are not in the filings.</b> Planes with the same inclination and altitude (a shell) are spread evenly around the equator, and the satellites in a plane are spread evenly along it. The tolerance comparison does not depend on this.</li>
+          <li>Satellites move eastward for inclinations below 90° (counter-clockwise seen from above the <b>N</b> pole) and westward above 90°. Most constellations here are near-polar (86–89°), so they mostly look like they travel north–south. The Earth is drawn without its rotation.</li>
+          <li>Each reported satellite rides alongside one planned slot of its plane (same RAAN and argument of latitude), so the gap between sphere and box is only the difference in altitude and inclination.</li>
+          <li>The tolerance box is the cross-section perpendicular to the direction of travel: radially from (notified − tolerance) to (notified + tolerance) altitude, sideways by ±Δi. Apogee and perigee tolerances are applied separately, so elliptical orbits get a box that changes along the orbit.</li>
+          <li>For the 2,000 km threshold the inclination rule uses the stricter (≤2,000 km) value only if both notified apogee and perigee are at or below 2,000 km; each altitude tolerance uses its own notified altitude. The resolution's wording does not settle this case.</li>
+          <li>Resolution 8 applies only to orbital planes with eccentricity below 0.5 and apogee below 15,000 km; other planes are drawn without a tolerance box.</li>
+          <li>Reported values are the PDF snapshot at the milestone report, not live tracking. Observed orbits (e.g. from TLEs) can be added as more spheres later.</li>
+        </ul>
+        <p class="small muted">Sources: <a href="https://www.itu.int/en/ITU-R/space/Pages/res8main.aspx" target="_blank" rel="noopener">ITU Resolution 8 (WRC-23)</a> · <a href="https://www.itu.int/net/ITU-R/space/res35/index.html" target="_blank" rel="noopener">Res 35 Space Network List</a> · data built <span id="builtDate"></span>.</p>
+      </details>
+    </div>
+  </aside>
+</div>
+
+<script id="orbit-data" type="application/json">/*__DATA__*/null</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
+import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+
+const DATA = JSON.parse(document.getElementById('orbit-data').textContent);
+const $ = s => document.querySelector(s);
+const RE = 6378.137, MU = 398600.4418, U = 1e-3, SEG = 180, TAU = Math.PI * 2, D2R = Math.PI / 180;
+const ENV_MAX = 80, MOVE_MAX = 2500, HSUB = 3;
+const natural = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true });
+const fmt = (v, d = 0) => v == null ? '–' : Number(v).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+const sgn = (v, d = 0) => v == null ? '–' : (v > 0 ? '+' : v < 0 ? '−' : '±') + fmt(Math.abs(v), d);
+
+// ------------------------------------------------------------------ orbit math
+function elements(apo, per, incDeg, argpDeg, raanDeg) {
+  const ra = RE + apo, rp = RE + per, a = (ra + rp) / 2, e = (ra - rp) / (ra + rp);
+  return { a, e, i: incDeg * D2R, w: (argpDeg || 0) * D2R, O: raanDeg * D2R, n: Math.sqrt(MU / (a * a * a)) };
+}
+function trueAnomaly(M, e) {
+  M = ((M % TAU) + TAU) % TAU;
+  if (Math.abs(e) < 1e-7) return M;
+  let E = e < 0.8 ? M : Math.PI;
+  for (let k = 0; k < 40; k++) {
+    const d = (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
+    E -= d; if (Math.abs(d) < 1e-11) break;
+  }
+  const nu = 2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(E / 2), Math.sqrt(1 - e) * Math.cos(E / 2));
+  return (nu + TAU) % TAU;
+}
+const radius = (a, e, nu) => a * (1 - e * e) / (1 + e * Math.cos(nu));
+// Scene axes: y = Earth's north pole. ECI (x, y, z) -> scene (x, z, -y).
+function unitAt(i, O, u, out) {
+  const cO = Math.cos(O), sO = Math.sin(O), cu = Math.cos(u), su = Math.sin(u), ci = Math.cos(i), si = Math.sin(i);
+  return out.set(cO * cu - sO * su * ci, su * si, -(sO * cu + cO * su * ci));
+}
+const normalOf = (i, O, out) => out.set(Math.sin(O) * Math.sin(i), Math.cos(i), Math.cos(O) * Math.sin(i));
+function posAt(el, nu, out) { return unitAt(el.i, el.O, el.w + nu, out).multiplyScalar(radius(el.a, el.e, nu) * U); }
+
+// ------------------------------------------------------------------ Resolution 8 tolerances
+const TIER_NAME = { r6: 'resolves 6', r7: 'resolves 7', r11: 'resolves 11', custom: 'custom limit' };
+function altTol(tier, h) {
+  switch (tier) {
+    case 'r6': return h <= 2000 ? 70 : 0.05 * h;
+    case 'r7': return h <= 2000 ? 100 : 0.10 * h;
+    case 'r11': return 30;
+    default: return S.customKm;
+  }
+}
+function incTol(tier, leo) {
+  switch (tier) {
+    case 'r6': return leo ? 2 : 3;
+    case 'r7': return leo ? 3 : 4;
+    case 'r11': return leo ? 2 : 3;
+    default: return S.customDeg;
+  }
+}
+function tolFor(p, tier) {
+  if (!p.inScope) return null;
+  return { dA: altTol(tier, p.apo), dP: altTol(tier, p.per), dI: incTol(tier, p.leo) };
+}
+const EPS = 1e-9;
+function outFlags(s, t) { return [Math.abs(s.dA) > t.dA + EPS, Math.abs(s.dP) > t.dP + EPS, Math.abs(s.dI) > t.dI + EPS]; }
+function statusOf(s, tier = S.tier) {
+  const p = s.plane;
+  if (!p.inScope || s.dA == null) return 'na';
+  const n = outFlags(s, tolFor(p, tier)).filter(Boolean).length;
+  if (n === 0) return 'good';
+  if (tier !== 'r7' && outFlags(s, tolFor(p, 'r7')).filter(Boolean).length === 0) return 'warn';
+  return 'bad';
+}
+// inner / outer bounding orbits for a tolerance (x = exaggeration)
+function boundsFor(p, t, x) {
+  const ai = Math.max(0, p.apo - x * t.dA), pi = Math.max(0, p.per - x * t.dP);
+  const ao = p.apo + x * t.dA, po = p.per + x * t.dP;
+  const ei = elements(ai, pi, 0, 0, 0), eo = elements(ao, po, 0, 0, 0);
+  return { ai: ei.a, ei: ei.e, ao: eo.a, eo: eo.e, di: x * t.dI * D2R };
+}
+const _r = new THREE.Vector3(), _n = new THREE.Vector3(), _m = new THREE.Vector3(), _pl = new THREE.Vector3();
+// 4 corners of the tolerance cross-section at true anomaly nu: [inner-, outer-, outer+, inner+]
+function corners(p, b, nu, out, shift) {
+  const el = p.el, u = el.w + nu;
+  const ri = radius(b.ai, b.ei, nu) * U, ro = radius(b.ao, b.eo, nu) * U;
+  if (S.mode === 'figure') {
+    unitAt(el.i, el.O, u, _r); normalOf(el.i, el.O, _n);
+    const c = Math.cos(b.di), s = Math.sin(b.di);
+    _m.copy(_r).multiplyScalar(c).addScaledVector(_n, -s);
+    _pl.copy(_r).multiplyScalar(c).addScaledVector(_n, s);
+  } else {
+    unitAt(el.i - b.di, el.O, u, _m); unitAt(el.i + b.di, el.O, u, _pl);
+  }
+  out[0].copy(_m).multiplyScalar(ri); out[1].copy(_m).multiplyScalar(ro);
+  out[2].copy(_pl).multiplyScalar(ro); out[3].copy(_pl).multiplyScalar(ri);
+  if (shift) for (const v of out) v.add(shift);
+}
+
+// ------------------------------------------------------------------ data preparation
+const NETS = DATA.networks.map(n => {
+  const net = { ...n, planesL: [], shells: [], satsL: [], shown: false, open: false, hasPlanned: n.planes.length > 0 };
+  const shellMap = new Map();
+  const addPlane = (id, inc, apo, per, argp, nNot, nDep, planned) => {
+    const key = `${inc}|${apo}|${per}|${argp}`;
+    let sh = shellMap.get(key);
+    if (!sh) { sh = { net, key, inc, apo, per, argp: argp || 0, planes: [], hidden: false, planned }; shellMap.set(key, sh); net.shells.push(sh); }
+    const p = { net, shell: sh, id, inc, apo, per, argp: argp || 0, nBox: planned ? (nNot || 0) : 0,
+                nNot: Math.max(1, nNot || 0), nDep: nDep || 0, planned, sats: [] };
+    sh.planes.push(p); net.planesL.push(p);
+  };
+  if (net.hasPlanned) for (const r of n.planes) addPlane(...r, true);
+  else {
+    const byId = new Map();
+    for (const s of n.sats) { if (!byId.has(s[1])) byId.set(s[1], []); byId.get(s[1]).push(s); }
+    for (const [id, l] of byId) addPlane(id, l[0][4], l[0][2], l[0][3], l[0][5], l.length, l.length, false);
+  }
+  for (const sh of net.shells) {
+    sh.planes.sort((a, b) => a.id - b.id);
+    const m = sh.planes.length;
+    sh.planes.forEach((p, k) => {
+      p.raan = 360 * k / m;
+      p.el = elements(p.apo, p.per, p.inc, p.argp, p.raan);
+      p.leo = p.apo <= 2000 && p.per <= 2000;
+      p.inScope = p.planned && p.el.e < 0.5 && p.apo < 15000;
+      p.phase0 = TAU * k / (p.nNot * m);              // Walker-like offset between planes
+      p.slotNu = new Float64Array(p.nNot);
+      p.lastSeg = new Int16Array(p.nNot).fill(-1); p.headFrom = new Float64Array(p.nNot);
+      p.revealed = new Uint8Array(SEG); p.revealCount = 0;
+      p.trailBase = -1; p.envBase = -1; p.ks = [];
+    });
+    sh.leo = sh.planes[0].leo; sh.inScope = sh.planes[0].inScope;
+    sh.nNot = sh.planes.reduce((a, p) => a + p.nBox, 0);
+    sh.nDep = sh.planes.reduce((a, p) => a + p.nDep, 0);
+  }
+  const byId = new Map(net.planesL.map(p => [p.id, p]));
+  for (const r of n.sats) {
+    const p = byId.get(r[1]); if (!p) continue;
+    const s = { net, name: r[0], plane: p, apo: r[2], per: r[3], inc: r[4], argp: r[5] || 0, launch: r[6] };
+    s.el = elements(s.apo, s.per, s.inc, s.argp, p.raan);
+    if (p.planned) { s.dA = s.apo - p.apo; s.dP = s.per - p.per; s.dI = +(s.inc - p.inc).toFixed(4); }
+    p.sats.push(s); net.satsL.push(s);
+  }
+  for (const p of net.planesL) {
+    p.sats.sort((a, b) => natural(a.name, b.name));
+    const d = p.sats.length, N = p.nNot, cnt = new Array(N).fill(0);
+    p.sats.forEach((s, j) => { const k = Math.floor(j * N / d) % N; s.slot = k; s.dnu = (cnt[k]++) * 0.3 * TAU / N; });
+  }
+  net.satsL.sort((a, b) => natural(a.name, b.name));
+  net.maxApo = Math.max(...net.planesL.map(p => p.apo), 0);
+  net.regime = !net.planesL.length ? '' : net.planesL.every(p => !p.inScope) ? 'na'
+             : net.planesL.every(p => p.leo) ? 'leo' : 'mixed';
+  return net;
+});
+
+// ------------------------------------------------------------------ state
+const S = {
+  tier: 'r6', customKm: 40, customDeg: 1, outer: true, mode: 'figure', X: 1, env: 'focus',
+  showBoxes: true, showSph: true, ghost: false, isoFocus: true, markerPx: 6,
+  playing: true, speed: 600, t: 0, focus: null, isolate: null, follow: false,
+};
+let theme = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+try { theme = localStorage.getItem('orbitTheme') || theme; } catch (e) {}
+if (matchMedia('(prefers-reduced-motion: reduce)').matches) S.playing = false;
+document.documentElement.dataset.theme = theme;
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+// ------------------------------------------------------------------ three.js scene
+const stage = $('#stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.domElement.className = 'gl';
+stage.prepend(renderer.domElement);
+$('#loading').remove();
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1000);
+camera.position.set(9, 10, 24);
+scene.add(camera);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.08; controls.minDistance = 0.02; controls.maxDistance = 400;
+scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(-4, 6, 10); camera.add(sun);
+
+// Earth: grey sphere, white graticule (10°), coastlines if they load
+const earth = new THREE.Group(); scene.add(earth);
+const earthMat = new THREE.MeshStandardMaterial({ color: 0x7c7c7c, roughness: 1, metalness: 0 });
+earth.add(new THREE.Mesh(new THREE.SphereGeometry(RE * U, 96, 64), earthMat));
+const gratMat = new THREE.LineBasicMaterial({ color: 0xd9d9d9, transparent: true, opacity: 0.32 });
+const coastMat = new THREE.LineBasicMaterial({ color: 0xf2f2f2, transparent: true, opacity: 0.85 });
+{
+  const pts = [], r = RE * U * 1.0015, v = (lat, lon) => {
+    const la = lat * D2R, lo = lon * D2R; return [r * Math.cos(la) * Math.cos(lo), r * Math.sin(la), -r * Math.cos(la) * Math.sin(lo)];
+  };
+  for (let lat = -80; lat <= 80; lat += 10) for (let lon = 0; lon < 360; lon += 3) pts.push(...v(lat, lon), ...v(lat, lon + 3));
+  for (let lon = 0; lon < 360; lon += 10) for (let lat = -90; lat < 90; lat += 3) pts.push(...v(lat, lon), ...v(lat + 3, lon));
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+  earth.add(new THREE.LineSegments(g, gratMat));
+  const axis = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, -RE * U * 1.25, 0), new THREE.Vector3(0, RE * U * 1.25, 0)]);
+  earth.add(new THREE.Line(axis, gratMat));
+  // "N" at the north pole, so the direction of travel can be read (prograde = counter-clockwise seen from here)
+  const cv = document.createElement('canvas'); cv.width = cv.height = 64;
+  const g2 = cv.getContext('2d'); g2.fillStyle = '#e6e6e6'; g2.font = '700 44px Roboto, Arial, sans-serif';
+  g2.textAlign = 'center'; g2.textBaseline = 'middle'; g2.fillText('N', 32, 34);
+  const nLabel = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true }));
+  nLabel.position.set(0, RE * U * 1.36, 0); nLabel.scale.setScalar(0.9); earth.add(nLabel);
+}
+(async () => {   // coastlines (Natural Earth 1:110m via world-atlas); the globe works without them
+  try {
+    const topo = await import('https://cdn.jsdelivr.net/npm/topojson-client@3/+esm');
+    let land;
+    try { land = (await import('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json', { with: { type: 'json' } })).default; }
+    catch (e) { land = (await import('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json/+esm')).default; }
+    const mesh = topo.mesh(land, land.objects.land);
+    const pts = [], r = RE * U * 1.002;
+    for (const line of mesh.coordinates) for (let k = 0; k + 1 < line.length; k++) for (const [lon, lat] of [line[k], line[k + 1]]) {
+      const la = lat * D2R, lo = lon * D2R; pts.push(r * Math.cos(la) * Math.cos(lo), r * Math.sin(la), -r * Math.cos(la) * Math.sin(lo));
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    earth.add(new THREE.LineSegments(g, coastMat));
+  } catch (e) { console.info('Coastlines not loaded; showing the graticule only.', e); }
+})();
+
+// shader material that hides segments not yet flown (attribute aOn)
+function revealMat(color, opacity, side = THREE.FrontSide) {
+  return new THREE.ShaderMaterial({
+    uniforms: { uColor: { value: new THREE.Color(color) }, uColor2: { value: new THREE.Color(0x9a9a9a) }, uOpacity: { value: opacity } },
+    vertexShader: `attribute float aOn; attribute float aK; varying float vOn; varying float vK;
+      void main(){ vOn = aOn; vK = aK; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform vec3 uColor; uniform vec3 uColor2; uniform float uOpacity; varying float vOn; varying float vK;
+      void main(){ if (vOn < 0.5) discard; gl_FragColor = vec4(mix(uColor2, uColor, vK), uOpacity);
+      #include <colorspace_fragment>
+      }`,
+    transparent: true, depthWrite: false, side,
+  });
+}
+const M = {
+  trail: new LineMaterial({ color: 0xffffff, linewidth: 2.2, vertexColors: true, transparent: true, opacity: 0.95, depthWrite: false }),
+  ghost: new THREE.LineBasicMaterial({ color: 0x9a9a9a, transparent: true, opacity: 0.3, depthWrite: false }),
+  envFill: revealMat(0xeaaa00, 0.15, THREE.DoubleSide),
+  envEdge: revealMat(0xeaaa00, 0.9),
+  headFill: new THREE.MeshBasicMaterial({ color: 0xeaaa00, transparent: true, opacity: 0.15, depthWrite: false, side: THREE.DoubleSide }),
+  headEdge: new THREE.LineBasicMaterial({ color: 0xeaaa00, transparent: true, opacity: 0.9, depthWrite: false }),
+  moveFill: new THREE.MeshBasicMaterial({ color: 0xeaaa00, transparent: true, opacity: 0.32, depthWrite: false, side: THREE.DoubleSide }),
+  moveLine: new THREE.LineBasicMaterial({ color: 0xffd45c }),
+  moveOuter: new THREE.LineBasicMaterial({ color: 0xeaaa00, transparent: true, opacity: 0.5 }),
+  box: new THREE.MeshStandardMaterial({ color: 0xeaaa00, roughness: 0.6, emissive: 0x3a2a00 }),
+  sph: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.45 }),
+  focusEdge: new THREE.LineBasicMaterial({ color: 0xffffff }),
+  focusHalo: new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.BackSide }),
+};
+const boxGeo = new THREE.BoxGeometry(1, 1, 1), sphGeo = new THREE.SphereGeometry(0.5, 16, 12);
+const focusBox = new THREE.LineSegments(new THREE.EdgesGeometry(boxGeo), M.focusEdge); focusBox.visible = false; scene.add(focusBox);
+const focusHalo = new THREE.Mesh(sphGeo, M.focusHalo); focusHalo.visible = false; scene.add(focusHalo);
+
+scene.background = new THREE.Color(0x0b0f14);     // the 3D view keeps a dark backdrop in both themes
+function applyTheme() {
+  document.documentElement.dataset.theme = theme;
+  colorSpheres(); drawDev();
+}
+
+// ------------------------------------------------------------------ scene contents (rebuilt on selection changes)
+let VIS = [], VSATS = [], BOXREF = [], ENV = [], MOVEREF = [];
+let trailObj = null, ghostObj = null, envMesh = null, envEdges = null, boxMesh = null, sphMesh = null;
+let moveFill = null, moveLine = null, moveOuter = null, headObj = null, headFill = null, headEdge = null;
+let trailSrc = null, trailN = 0, HEADREF = [];
+let envOn = null, edgeOn = null, dirty = { trail: false, env: false };
+const LINE_ON = [1, 1, 1], LINE_REPORTED = [0.25, 0.25, 0.25];
+let boxPos = new Float32Array(0), sphPos = new Float32Array(0);
+let envNote = '', moveNote = '';
+const range = n => Array.from({ length: n }, (_, k) => k);
+
+function visiblePlanes() {
+  const iso = S.isolate;
+  if (iso && iso.type === 'slot') return [iso.plane];
+  if (iso && iso.type === 'shell') return iso.shell.planes;
+  const out = [];
+  for (const net of NETS) if (net.shown) for (const sh of net.shells) if (!sh.hidden) out.push(...sh.planes);
+  return out;
+}
+function disposeObj(o) { if (!o) return; scene.remove(o); o.geometry.dispose(); }
+
+function rebuildAll() {
+  for (const o of [trailObj, ghostObj, boxMesh, sphMesh, headObj]) disposeObj(o);
+  for (const p of VIS) { p.trailBase = -1; p.envBase = -1; }
+  VIS = visiblePlanes();
+  const iso = S.isolate && S.isolate.type === 'slot' ? S.isolate : null;
+  VSATS = []; BOXREF = [];
+  for (const p of VIS) {
+    p.ks = iso ? [iso.slot] : range(p.nNot);
+    p.revealed.fill(0); p.revealCount = 0; p.lastSeg.fill(-1); p.headFrom.fill(0);
+    if (p.nBox > 0) for (const k of p.ks) if (k < p.nBox) BOXREF.push([p, k]);
+    for (const s of p.sats) if (!iso || (iso.sat ? s === iso.sat : s.slot === iso.slot)) VSATS.push(s);
+  }
+  // orbit trails: every flown segment is appended to one thick-line geometry (white = planned orbit)
+  trailSrc = new Float32Array(Math.max(1, VIS.length * SEG) * 6);
+  const a = new THREE.Vector3(), b = new THREE.Vector3();
+  VIS.forEach((p, pi) => {
+    p.trailBase = pi * SEG;
+    for (let j = 0; j < SEG; j++) {
+      posAt(p.el, TAU * j / SEG, a); posAt(p.el, TAU * (j + 1) / SEG, b);
+      trailSrc.set([a.x, a.y, a.z, b.x, b.y, b.z], (pi * SEG + j) * 6);
+    }
+  });
+  const tg = new LineSegmentsGeometry();
+  tg.setPositions(new Float32Array(trailSrc.length)); tg.setColors(new Float32Array(trailSrc.length));
+  tg.instanceCount = 0; trailN = 0;
+  trailObj = new LineSegments2(tg, M.trail); trailObj.frustumCulled = false; scene.add(trailObj);
+  const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.BufferAttribute(trailSrc, 3));
+  ghostObj = new THREE.LineSegments(gg, M.ghost); ghostObj.frustumCulled = false; ghostObj.visible = S.ghost; scene.add(ghostObj);
+  // the growing tip of each trail, from the last whole segment up to the satellite (redrawn every frame)
+  HEADREF = [];
+  for (const p of VIS) for (const k of p.ks) HEADREF.push([p, k]);
+  if (HEADREF.length > MOVE_MAX) HEADREF = [];
+  const hg = new LineSegmentsGeometry();
+  hg.setPositions(new Float32Array(Math.max(1, HEADREF.length * HSUB) * 6)); hg.setColors(new Float32Array(Math.max(1, HEADREF.length * HSUB) * 6));
+  hg.instanceCount = 0;
+  headObj = new LineSegments2(hg, M.trail); headObj.frustumCulled = false; scene.add(headObj);
+  // planned slots and reported satellites
+  boxMesh = new THREE.InstancedMesh(boxGeo, M.box, Math.max(1, BOXREF.length));
+  boxMesh.count = S.showBoxes ? BOXREF.length : 0; boxMesh.frustumCulled = false;
+  boxMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(boxMesh);
+  sphMesh = new THREE.InstancedMesh(sphGeo, M.sph, Math.max(1, VSATS.length));
+  sphMesh.count = S.showSph ? VSATS.length : 0; sphMesh.frustumCulled = false;
+  sphMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(sphMesh);
+  boxPos = new Float32Array(BOXREF.length * 3); sphPos = new Float32Array(VSATS.length * 3);
+  colorSpheres();
+  rebuildEnv();
+}
+
+function rebuildEnv() {
+  for (const o of [envMesh, envEdges, moveFill, moveLine, moveOuter, headFill, headEdge]) disposeObj(o);
+  envMesh = envEdges = moveFill = moveLine = moveOuter = headFill = headEdge = null;
+  for (const p of VIS) { p.envBase = -1; p.capS = Infinity; }
+  ENV = []; MOVEREF = []; envNote = ''; moveNote = '';
+  const cand = VIS.filter(p => p.inScope);
+  const F = S.focus, fPlane = F && F.plane && F.plane.inScope && F.plane.trailBase >= 0 ? F.plane : null;
+  let movePlanes = [];
+  if (S.env === 'focus') {
+    // tolerance only for what is selected: the satellite/slot, or the shell shown alone
+    if (S.isolate) { ENV = cand.length <= ENV_MAX ? cand : []; movePlanes = ENV; }
+    else if (fPlane) { ENV = [fPlane]; MOVEREF.push([fPlane, F.slot]); }
+  } else if (S.env === 'all') {
+    if (cand.length <= ENV_MAX) { ENV = cand; movePlanes = cand; }
+    else envNote = `${cand.length} planes are shown, so the tolerance envelopes are hidden (limit ${ENV_MAX}). Pick a shell or a satellite in the network list to see them.`;
+  }
+  const C = range(SEG + 1).map(() => [0, 1, 2, 3].map(() => new THREE.Vector3()));
+  for (const p of VIS) if (p.inScope) {
+    p.tolP = tolFor(p, S.tier); p.bP = boundsFor(p, p.tolP, S.X);
+    p.tolO = tolFor(p, 'r7'); p.bO = boundsFor(p, p.tolO, S.X);
+  }
+  // inside a tolerance box, markers never grow past a quarter of the box height, so the box stays to scale
+  for (const p of ENV) p.capS = Math.max(1, 0.5 * Math.min(p.tolP.dA, p.tolP.dP) * S.X) * U;
+  if (ENV.length) {
+    const nV = ENV.length * SEG * 16, nE = ENV.length * SEG * 8;
+    const pos = new Float32Array(nV * 3), idx = new Uint32Array(ENV.length * SEG * 24), epos = new Float32Array(nE * 3);
+    envOn = new Float32Array(nV); edgeOn = new Float32Array(nE);
+    ENV.forEach((p, pi) => {
+      p.envBase = pi * SEG * 16; p.edgeBase = pi * SEG * 8;
+      for (let j = 0; j <= SEG; j++) corners(p, p.bP, TAU * j / SEG, C[j], null);
+      for (let j = 0; j < SEG; j++) {
+        const on = p.revealed[j] ? 1 : 0;
+        for (let s = 0; s < 4; s++) {
+          const v0 = p.envBase + j * 16 + s * 4, q = (s + 1) % 4;
+          [C[j][s], C[j][q], C[j + 1][q], C[j + 1][s]].forEach((v, t) => { pos.set([v.x, v.y, v.z], (v0 + t) * 3); envOn[v0 + t] = on; });
+          idx.set([v0, v0 + 1, v0 + 2, v0, v0 + 2, v0 + 3], (p.envBase / 4 + j * 4 + s) * 6);
+        }
+        for (let c = 0; c < 4; c++) {
+          const e0 = p.edgeBase + j * 8 + c * 2;
+          epos.set([C[j][c].x, C[j][c].y, C[j][c].z, C[j + 1][c].x, C[j + 1][c].y, C[j + 1][c].z], e0 * 3);
+          edgeOn[e0] = edgeOn[e0 + 1] = on;
+        }
+      }
+    });
+    const ones = n => new THREE.BufferAttribute(new Float32Array(n).fill(1), 1);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('aOn', new THREE.BufferAttribute(envOn, 1).setUsage(THREE.DynamicDrawUsage));
+    g.setAttribute('aK', ones(nV)); g.setIndex(new THREE.BufferAttribute(idx, 1));
+    envMesh = new THREE.Mesh(g, M.envFill); envMesh.frustumCulled = false; envMesh.renderOrder = 2; scene.add(envMesh);
+    const ge = new THREE.BufferGeometry();
+    ge.setAttribute('position', new THREE.BufferAttribute(epos, 3));
+    ge.setAttribute('aOn', new THREE.BufferAttribute(edgeOn, 1).setUsage(THREE.DynamicDrawUsage));
+    ge.setAttribute('aK', ones(nE));
+    envEdges = new THREE.LineSegments(ge, M.envEdge); envEdges.frustumCulled = false; scene.add(envEdges);
+  }
+  // moving tolerance boxes
+  for (const p of movePlanes) for (const k of p.ks) if (k < p.nBox) MOVEREF.push([p, k]);
+  if (MOVEREF.length > MOVE_MAX) { moveNote = `${MOVEREF.length} planned slots are shown, so the moving tolerance boxes are hidden (limit ${MOVE_MAX}).`; MOVEREF = []; }
+  if (MOVEREF.length) {
+    const n = MOVEREF.length, idx = new Uint32Array(n * 6);
+    for (let k = 0; k < n; k++) idx.set([k * 4, k * 4 + 1, k * 4 + 2, k * 4, k * 4 + 2, k * 4 + 3], k * 6);
+    const mk = (count) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count * 3), 3).setUsage(THREE.DynamicDrawUsage)); return g; };
+    const gf = mk(n * 4); gf.setIndex(new THREE.BufferAttribute(idx, 1));
+    moveFill = new THREE.Mesh(gf, M.moveFill); moveFill.renderOrder = 3;
+    moveLine = new THREE.LineSegments(mk(n * 8), M.moveLine);
+    moveOuter = new THREE.LineSegments(mk(n * 8), M.moveOuter);
+    for (const o of [moveFill, moveLine, moveOuter]) { o.frustumCulled = false; scene.add(o); }
+    // growing tip of the tolerance envelope behind each moving box
+    const hq = n * HSUB * 4, hidx = new Uint32Array(hq * 6);
+    for (let q = 0; q < hq; q++) hidx.set([q * 4, q * 4 + 1, q * 4 + 2, q * 4, q * 4 + 2, q * 4 + 3], q * 6);
+    const hf = mk(hq * 4); hf.setIndex(new THREE.BufferAttribute(hidx, 1));
+    headFill = new THREE.Mesh(hf, M.headFill); headFill.renderOrder = 2;
+    headEdge = new THREE.LineSegments(mk(n * HSUB * 8), M.headEdge);
+    for (const o of [headFill, headEdge]) { o.frustumCulled = false; scene.add(o); }
+  }
+  const note = [envNote, moveNote].filter(Boolean).join(' ');
+  $('#note').hidden = !note; $('#note').textContent = note;
+  $('#lgTolText').textContent = `Res 8 tolerance (${TIER_NAME[S.tier]}${S.tier === 'custom' ? `: ±${S.customKm} km, ±${S.customDeg.toFixed(2)}°` : ''})`;
+  $('#lgOuterRow').hidden = !(S.outer && S.tier !== 'r7');
+}
+
+function markSeg(p, j) {
+  if (p.revealed[j]) return;
+  p.revealed[j] = 1; p.revealCount++;
+  const g = trailObj.geometry, src = (p.trailBase + j) * 6, dst = trailN * 6, c = p.planned ? LINE_ON : LINE_REPORTED;
+  g.attributes.instanceStart.data.array.set(trailSrc.subarray(src, src + 6), dst);
+  g.attributes.instanceColorStart.data.array.set([...c, ...c], dst);
+  trailN++; dirty.trail = true;
+  if (p.envBase >= 0) {
+    envOn.fill(1, p.envBase + j * 16, p.envBase + j * 16 + 16);
+    edgeOn.fill(1, p.edgeBase + j * 8, p.edgeBase + j * 8 + 8); dirty.env = true;
+  }
+}
+// A segment is drawn once the satellite has left it; the part between that segment's end and the
+// satellite is the "tip", redrawn every frame so the line and the envelope grow smoothly behind it.
+function reveal(p, k, nu, all) {
+  const seg = Math.min(SEG - 1, Math.floor(nu / TAU * SEG)), last = p.lastSeg[k];
+  p.lastSeg[k] = seg;
+  if (p.revealCount >= SEG) return;
+  if (all) { for (let j = 0; j < SEG; j++) markSeg(p, j); return; }
+  if (last < 0) { p.headFrom[k] = nu; return; }
+  if (last !== seg) {
+    for (let j = last, g = 0; j !== seg && g < SEG; g++, j = (j + 1) % SEG) markSeg(p, j);
+    p.headFrom[k] = TAU * seg / SEG;
+  }
+}
+function tipRange(p, k) {
+  if (p.revealCount >= SEG || p.lastSeg[k] < 0) return null;
+  let a = p.headFrom[k], b = p.slotNu[k];
+  if (b < a) b += TAU;
+  if (b - a > 1.5 * TAU / SEG) a = b - TAU / SEG;
+  return b - a > 1e-6 ? [a, b] : null;
+}
+
+const STATUS_HEX = () => ({ good: css('--good'), warn: css('--warn'), bad: css('--bad'), na: css('--na') });
+function colorSpheres() {
+  if (!sphMesh) return;
+  const hex = STATUS_HEX(), c = new THREE.Color();
+  VSATS.forEach((s, k) => { s.status = statusOf(s); sphMesh.setColorAt(k, c.set(hex[s.status])); });
+  if (sphMesh.instanceColor) sphMesh.instanceColor.needsUpdate = true;
+}
+
+// ------------------------------------------------------------------ per-frame update
+const mtx = new THREE.Matrix4(), _p = new THREE.Vector3(), _q = new THREE.Vector3(), _t = new THREE.Vector3(),
+      _R = new THREE.Vector3(), _N = new THREE.Vector3(), _negN = new THREE.Vector3(), _sc = new THREE.Vector3(),
+      _shift = new THREE.Vector3(), CC = [0, 1, 2, 3].map(() => new THREE.Vector3());
+let focusPos = null;
+const focusVec = new THREE.Vector3();
+
+function frameBasis(p, nu) {
+  unitAt(p.el.i, p.el.O, p.el.w + nu, _R); normalOf(p.el.i, p.el.O, _N);
+  _t.crossVectors(_N, _R).normalize();                 // along-track direction
+}
+function satPosition(s, nu, out) {
+  const p = s.plane, u = p.el.w + nu;
+  const nuS = u - s.el.w;
+  unitAt(s.el.i, p.el.O, u, out).multiplyScalar(radius(s.el.a, s.el.e, nuS) * U);
+  if (p.planned && S.X !== 1) { posAt(p.el, nu, _q); out.sub(_q).multiplyScalar(S.X).add(_q); }
+  return out;
+}
+
+function update(dtSim) {
+  for (const p of VIS) {
+    const all = p.el.n * dtSim > TAU * 0.98;
+    for (const k of p.ks) {
+      const nu = trueAnomaly(p.phase0 + TAU * k / p.nNot + p.el.n * S.t, p.el.e);
+      p.slotNu[k] = nu; reveal(p, k, nu, all);
+    }
+  }
+  if (dirty.trail) {
+    const g = trailObj.geometry; g.attributes.instanceStart.data.needsUpdate = true;
+    g.attributes.instanceColorStart.data.needsUpdate = true; g.instanceCount = trailN; dirty.trail = false;
+  }
+  if (dirty.env && envMesh) { envMesh.geometry.attributes.aOn.needsUpdate = true; envEdges.geometry.attributes.aOn.needsUpdate = true; dirty.env = false; }
+  // trail tips
+  {
+    const g = headObj.geometry, hp = g.attributes.instanceStart.data.array, hc = g.attributes.instanceColorStart.data.array;
+    let n = 0;
+    for (const [p, k] of HEADREF) {
+      const r = tipRange(p, k); if (!r) continue;
+      const c = p.planned ? LINE_ON : LINE_REPORTED;
+      for (let j = 0; j < HSUB; j++) {
+        posAt(p.el, r[0] + (r[1] - r[0]) * j / HSUB, _p); posAt(p.el, r[0] + (r[1] - r[0]) * (j + 1) / HSUB, _q);
+        hp.set([_p.x, _p.y, _p.z, _q.x, _q.y, _q.z], n * 6); hc.set([...c, ...c], n * 6); n++;
+      }
+    }
+    g.attributes.instanceStart.data.needsUpdate = true; g.attributes.instanceColorStart.data.needsUpdate = true; g.instanceCount = n;
+  }
+  // markers keep a constant size on screen (S.markerPx), capped inside tolerance boxes
+  const pxK = 2 * Math.tan(camera.fov * D2R / 2) / Math.max(1, renderer.domElement.clientHeight) * S.markerPx;
+  const size = (p, pos) => Math.min(camera.position.distanceTo(pos) * pxK, p.capS);
+  focusPos = null;
+  const F = S.focus;
+  // boxes
+  if (S.showBoxes) {
+    BOXREF.forEach(([p, k], b) => {
+      const nu = p.slotNu[k]; frameBasis(p, nu); posAt(p.el, nu, _p);
+      _negN.copy(_N).negate(); const s = size(p, _p);
+      mtx.makeBasis(_t, _R, _negN).scale(_sc.set(s, s, s)).setPosition(_p);
+      boxMesh.setMatrixAt(b, mtx); boxPos[b * 3] = _p.x; boxPos[b * 3 + 1] = _p.y; boxPos[b * 3 + 2] = _p.z;
+    });
+    boxMesh.instanceMatrix.needsUpdate = true;
+  }
+  if (F && (F.type === 'slot' || F.type === 'sat') && F.plane.ks.includes(F.slot) && F.plane.trailBase >= 0) {
+    const p = F.plane, nu = p.slotNu[F.slot]; frameBasis(p, nu); posAt(p.el, nu, _p); _negN.copy(_N).negate();
+    const s = size(p, _p);
+    mtx.makeBasis(_t, _R, _negN).scale(_sc.set(s * 1.3, s * 1.3, s * 1.3)).setPosition(_p);
+    focusBox.matrixAutoUpdate = false; focusBox.matrix.copy(mtx); focusBox.visible = p.nBox > 0 && S.showBoxes;
+    if (!F.sat) focusPos = focusVec.copy(_p);
+  } else focusBox.visible = false;
+  // spheres
+  focusHalo.visible = false;
+  if (S.showSph) {
+    VSATS.forEach((sat, b) => {
+      satPosition(sat, sat.plane.slotNu[sat.slot] + sat.dnu, _p);
+      const s = size(sat.plane, _p);
+      mtx.makeScale(s * 0.8, s * 0.8, s * 0.8).setPosition(_p);
+      sphMesh.setMatrixAt(b, mtx); sphPos[b * 3] = _p.x; sphPos[b * 3 + 1] = _p.y; sphPos[b * 3 + 2] = _p.z;
+      if (F && F.sat === sat) { focusHalo.position.copy(_p); focusHalo.scale.setScalar(s * 1.15); focusHalo.visible = true; focusPos = focusVec.copy(_p); }
+    });
+    sphMesh.instanceMatrix.needsUpdate = true;
+  }
+  if (F && F.sat && !focusPos && F.plane.trailBase >= 0) focusPos = focusVec.copy(satPosition(F.sat, F.plane.slotNu[F.slot] + F.sat.dnu, _p));
+  // moving tolerance boxes, on the leading face of each planned box
+  if (MOVEREF.length) {
+    const fp = moveFill.geometry.attributes.position.array, lp = moveLine.geometry.attributes.position.array, op = moveOuter.geometry.attributes.position.array;
+    const outer = S.outer && S.tier !== 'r7';
+    MOVEREF.forEach(([p, k], m) => {
+      const nu = p.slotNu[k]; frameBasis(p, nu); posAt(p.el, nu, _p); _shift.copy(_t).multiplyScalar(size(p, _p) * 0.5);
+      corners(p, p.bP, nu, CC, _shift);
+      for (let c = 0; c < 4; c++) {
+        fp.set([CC[c].x, CC[c].y, CC[c].z], (m * 4 + c) * 3);
+        const d = CC[(c + 1) % 4];
+        lp.set([CC[c].x, CC[c].y, CC[c].z, d.x, d.y, d.z], (m * 8 + c * 2) * 3);
+      }
+      if (outer) {
+        corners(p, p.bO, nu, CC, _shift);
+        for (let c = 0; c < 4; c++) { const d = CC[(c + 1) % 4]; op.set([CC[c].x, CC[c].y, CC[c].z, d.x, d.y, d.z], (m * 8 + c * 2) * 3); }
+      }
+    });
+    moveFill.geometry.attributes.position.needsUpdate = true;
+    moveLine.geometry.attributes.position.needsUpdate = true;
+    moveOuter.geometry.attributes.position.needsUpdate = true; moveOuter.visible = outer;
+    // envelope tips: from the last whole segment up to the tolerance box
+    const hf = headFill.geometry.attributes.position.array, he = headEdge.geometry.attributes.position.array;
+    let q = 0, e = 0;
+    const A = [0, 1, 2, 3].map(() => new THREE.Vector3()), B = [0, 1, 2, 3].map(() => new THREE.Vector3());
+    for (const [p, k] of MOVEREF) {
+      const r = tipRange(p, k); if (!r) continue;
+      for (let j = 0; j < HSUB; j++) {
+        corners(p, p.bP, r[0] + (r[1] - r[0]) * j / HSUB, A, null); corners(p, p.bP, r[0] + (r[1] - r[0]) * (j + 1) / HSUB, B, null);
+        for (let s4 = 0; s4 < 4; s4++) {
+          const n4 = (s4 + 1) % 4;
+          [A[s4], A[n4], B[n4], B[s4]].forEach((v, t) => hf.set([v.x, v.y, v.z], (q * 4 + t) * 3)); q++;
+          he.set([A[s4].x, A[s4].y, A[s4].z, B[s4].x, B[s4].y, B[s4].z], e * 6); e++;
+        }
+      }
+    }
+    headFill.geometry.setDrawRange(0, q * 6); headEdge.geometry.setDrawRange(0, e * 2);
+    headFill.geometry.attributes.position.needsUpdate = true; headEdge.geometry.attributes.position.needsUpdate = true;
+  }
+}
+
+// ------------------------------------------------------------------ camera: fit, follow, fly
+const fly = { on: false, t0: 0, dur: 1100, d0: new THREE.Vector3(), d1: new THREE.Vector3() };
+let lastFocusPos = null;
+function fitView() {
+  S.follow = false; $('#follow').classList.remove('on'); fly.on = false;
+  const maxApo = Math.max(1200, ...VIS.map(p => p.apo));
+  const d = (RE + maxApo) * U * 3.1;
+  controls.target.set(0, 0, 0);
+  camera.position.set(0.38 * d, 0.42 * d, 0.82 * d);
+  lastFocusPos = null;
+}
+function flyToFocus() {
+  if (!focusPos) return;
+  const F = S.focus, p = F.plane;
+  const tol = p.inScope ? 2 * (RE + p.apo) * U * Math.sin(p.tolP.dI * D2R * S.X) : 0.4;
+  const d = Math.max(0.25, tol * 2.4);
+  frameBasis(p, p.slotNu[F.slot]);
+  fly.d0.copy(camera.position).sub(controls.target.copy(focusPos));
+  fly.d1.copy(_t).multiplyScalar(-d).addScaledVector(_R, 0.45 * d).addScaledVector(_N, 0.55 * d);
+  fly.on = true; fly.t0 = performance.now();
+  S.follow = true; $('#follow').classList.add('on'); lastFocusPos = focusPos.clone();
+}
+function cameraStep() {
+  if (S.follow && focusPos) {
+    if (fly.on) {
+      const a = Math.min(1, (performance.now() - fly.t0) / fly.dur), e = a * a * (3 - 2 * a);
+      const l0 = fly.d0.length(), l1 = fly.d1.length();
+      const dir = _q.copy(fly.d0).multiplyScalar(1 / l0).lerp(_p.copy(fly.d1).multiplyScalar(1 / l1), e).normalize();
+      controls.target.copy(focusPos);
+      camera.position.copy(focusPos).addScaledVector(dir, Math.pow(l0, 1 - e) * Math.pow(l1, e));
+      if (a >= 1) fly.on = false;
+    } else if (lastFocusPos) {
+      _q.copy(focusPos).sub(lastFocusPos); camera.position.add(_q); controls.target.add(_q);
+    }
+    lastFocusPos = focusPos.clone();
+  }
+  const dist = camera.position.distanceTo(controls.target);
+  camera.near = Math.min(0.5, Math.max(1e-4, dist * 0.01)); camera.far = dist + 300;
+  camera.updateProjectionMatrix();
+}
+
+// ------------------------------------------------------------------ hover + click picking (screen space)
+const tip = $('#tip');
+let mouse = null, down = null, hover = null;
+const ndc = new THREE.Vector3();
+function hidden(x, y, z) {   // behind the Earth?
+  const o = camera.position, dx = x - o.x, dy = y - o.y, dz = z - o.z, L = Math.hypot(dx, dy, dz);
+  const b = (o.x * dx + o.y * dy + o.z * dz) / L, c = o.lengthSq() - (RE * U) ** 2, disc = b * b - c;
+  if (disc < 0) return false;
+  const tHit = -b - Math.sqrt(disc); return tHit > 0 && tHit < L - 1e-3;
+}
+function pick() {
+  if (!mouse) return null;
+  const w = renderer.domElement.clientWidth, h = renderer.domElement.clientHeight;
+  let best = null, bd = 10 * 10;
+  const test = (arr, n, kind) => {
+    for (let k = 0; k < n; k++) {
+      ndc.set(arr[k * 3], arr[k * 3 + 1], arr[k * 3 + 2]).project(camera);
+      if (ndc.z > 1 || ndc.z < -1) continue;
+      const sx = (ndc.x + 1) / 2 * w, sy = (1 - ndc.y) / 2 * h, d = (sx - mouse.x) ** 2 + (sy - mouse.y) ** 2;
+      if (d < bd && !hidden(arr[k * 3], arr[k * 3 + 1], arr[k * 3 + 2])) { bd = d; best = { kind, k }; }
+    }
+  };
+  if (S.showBoxes) test(boxPos, BOXREF.length, 'box');
+  if (S.showSph) { const b0 = best; bd = b0 ? Math.min(bd + 30, 14 * 14) : bd; test(sphPos, VSATS.length, 'sph'); }
+  return best;
+}
+function tipHtml(h) {
+  if (h.kind === 'sph') {
+    const s = VSATS[h.k], p = s.plane;
+    const st = { good: 'within chosen limits', warn: `outside ${TIER_NAME[S.tier]}, within resolves 7`, bad: 'beyond resolves 7', na: p.planned ? 'Res 8 does not apply' : 'no notified plane in this PDF' }[s.status];
+    return `<b>${esc(s.name)}</b> · reported satellite<br>${esc(s.net.name)} · plane ${p.id}<br>${fmt(s.per)}–${fmt(s.apo)} km, i ${fmt(s.inc, 2)}°<br><span class="${{ good: 'ok', warn: 'wn', bad: 'bd', na: 'muted' }[s.status]}">${st}</span>`;
+  }
+  const [p, k] = BOXREF[h.k];
+  return `<b>Planned slot ${k + 1} of ${p.nBox}</b> (not a real satellite)<br>${esc(p.net.name)} · plane ${p.id}<br>${altText(p)}, i ${fmt(p.inc, 2)}°`;
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const altText = p => p.apo === p.per ? `${fmt(p.apo)} km` : `${fmt(p.per)}–${fmt(p.apo)} km`;
+renderer.domElement.addEventListener('pointermove', e => { const r = renderer.domElement.getBoundingClientRect(); mouse = { x: e.clientX - r.left, y: e.clientY - r.top }; });
+renderer.domElement.addEventListener('pointerleave', () => { mouse = null; tip.hidden = true; });
+renderer.domElement.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY }; });
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 5) return;
+  const h = pick(); if (!h) return;
+  if (h.kind === 'sph') focusSat(VSATS[h.k]);
+  else { const [p, k] = BOXREF[h.k]; focusSlot(p, k); }
+});
+function hoverStep() {
+  if (!mouse) return;
+  hover = pick();
+  if (!hover) { tip.hidden = true; renderer.domElement.style.cursor = ''; return; }
+  renderer.domElement.style.cursor = 'pointer';
+  tip.innerHTML = tipHtml(hover); tip.hidden = false;
+  const w = stage.clientWidth;
+  tip.style.left = Math.min(mouse.x + 14, w - 290) + 'px'; tip.style.top = (mouse.y + 14) + 'px';
+}
+
+// ------------------------------------------------------------------ focus
+function focusSat(s) {
+  s.net.shown = true;
+  S.focus = { type: 'sat', sat: s, plane: s.plane, slot: s.slot };
+  S.isolate = S.isoFocus ? { type: 'slot', plane: s.plane, slot: s.slot, sat: s } : (S.isolate && S.isolate.type === 'slot' ? null : S.isolate);
+  afterFocus();
+}
+function focusSlot(p, k) {
+  const sat = p.sats.find(s => s.slot === k) || null;
+  S.focus = { type: sat ? 'sat' : 'slot', sat, plane: p, slot: k };
+  S.isolate = S.isoFocus ? { type: 'slot', plane: p, slot: k, sat } : (S.isolate && S.isolate.type === 'slot' ? null : S.isolate);
+  afterFocus();
+}
+function focusShell(sh) {
+  sh.net.shown = true; sh.hidden = false;
+  S.focus = { type: 'shell', shell: sh };
+  S.isolate = { type: 'shell', shell: sh };
+  rebuildAll(); renderList(); renderFocus(); drawDev(); fitView();
+}
+function afterFocus() {
+  rebuildAll(); renderList(); renderFocus(); drawDev();
+  update(0); flyToFocus();
+}
+function clearFocus() { S.focus = null; S.isolate = null; rebuildAll(); renderList(); renderFocus(); drawDev(); fitView(); }
+
+function renderFocus() {
+  const F = S.focus, box = $('#focusCard');
+  $('#focusSec').hidden = !F;
+  if (!F) return;
+  if (F.type === 'shell') {
+    const sh = F.shell, t = sh.inScope ? tolFor(sh.planes[0], S.tier) : null;
+    box.innerHTML = `<p class="focus-title">${esc(sh.net.name)} shell</p>
+      <dl class="kv"><dt>Inclination</dt><dd>${fmt(sh.inc, 2)}°</dd><dt>Altitude</dt><dd>${altText(sh)}</dd>
+      <dt>Planes</dt><dd>${sh.planes.length}</dd><dt>Notified / deployed</dt><dd>${fmt(sh.nNot)} / ${fmt(sh.nDep)}</dd>
+      <dt>Tolerance</dt><dd>${t ? `±${fmt(t.dA, 0)} km apogee, ±${fmt(t.dP, 0)} km perigee, ±${fmt(t.dI, 2)}°` : 'Res 8 does not apply'}</dd></dl>
+      <div class="btnrow"><button class="btn" id="fShowNet">Show whole network</button><button class="btn" id="fClear">Clear</button></div>`;
+  } else {
+    const p = F.plane, s = F.sat, t = tolFor(p, S.tier);
+    let rows = '';
+    if (s && p.planned) {
+      const fl = t ? outFlags(s, t) : [false, false, false];
+      const r = (lab, notif, rep, d, lim, out, dec, unit) => {
+        const used = lim ? Math.abs(d) / lim * 100 : null;
+        return `<tr><td>${lab}</td><td>${fmt(notif, dec)}</td><td>${fmt(rep, dec)}</td><td>${sgn(d, dec)}</td><td>${lim != null ? '±' + fmt(lim, dec) : '–'}</td>
+          <td class="${!t ? '' : out ? 'bd' : 'ok'}">${used == null ? '–' : fmt(used, 0) + '%'}</td></tr>`;
+      };
+      rows = `<table class="dev"><tr><th></th><th>Notified</th><th>Reported</th><th>Δ</th><th>Limit</th><th>Used</th></tr>
+        ${r('Apogee (km)', p.apo, s.apo, s.dA, t && t.dA, fl[0], 0)}
+        ${r('Perigee (km)', p.per, s.per, s.dP, t && t.dP, fl[1], 0)}
+        ${r('Inclination (°)', p.inc, s.inc, s.dI, t && t.dI, fl[2], 2)}</table>`;
+      if (t) {
+        const chk = tier => { const f = outFlags(s, tolFor(p, tier)); const n = f.filter(Boolean).length; return `<span class="${n ? 'bd' : 'ok'}">${n ? '✗' : '✓'} ${TIER_NAME[tier]}${n ? ` (${n} of 3 out)` : ''}</span>`; };
+        rows += `<p class="small" style="margin:8px 0 0">${['r6', 'r7', 'r11'].map(chk).join(' · ')}${S.tier === 'custom' ? ' · ' + chk('custom') : ''}</p>`;
+      }
+    } else if (s) rows = `<p class="small muted">This PDF has no notified orbital planes, so there is nothing to compare with. Reported orbit: ${fmt(s.per)}–${fmt(s.apo)} km, i ${fmt(s.inc, 2)}°.</p>`;
+    const title = s ? esc(s.name) : `Planned slot ${F.slot + 1} of ${p.nBox}`;
+    box.innerHTML = `<p class="focus-title">${title}</p>
+      <p class="small muted" style="margin:0 0 6px">${s ? 'Reported satellite' : 'Planned slot (no reported satellite here)'} · ${esc(p.net.name)} (${esc(p.net.adm)}) · plane ${p.id}${s && s.launch ? ` · launched ${s.launch}` : ''}</p>
+      <dl class="kv">${p.planned ? `<dt>Notified plane</dt><dd>${altText(p)}, i ${fmt(p.inc, 2)}°, ω ${fmt(p.argp)}°</dd>
+      <dt>Tolerance (${TIER_NAME[S.tier]})</dt><dd>${t ? `±${fmt(t.dA)} km apogee, ±${fmt(t.dP)} km perigee, ±${fmt(t.dI, 2)}°` : 'Res 8 does not apply (apogee ≥ 15,000 km or e ≥ 0.5)'}</dd>`
+      : `<dt>Notified plane</dt><dd>Not in this PDF (old layout)</dd>`}
+      <dt>Source</dt><dd><a href="${esc(p.net.pdf_url)}" target="_blank" rel="noopener">${esc(p.net.pdf_id)}</a> (${esc(p.net.milestone)}, BR IFIC ${esc(p.net.brific_date)})</dd></dl>
+      ${rows}
+      <div class="btnrow">
+        ${S.isolate && S.isolate.type === 'slot' ? '<button class="btn" id="fShowNet">Show whole network</button>' : '<button class="btn" id="fIso">Show alone</button>'}
+        <button class="btn" id="fFly">Fly to it</button><button class="btn" id="fClear">Clear</button></div>`;
+  }
+  const on = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = fn; };
+  on('fShowNet', () => { S.isolate = null; rebuildAll(); renderFocus(); update(0); if (S.focus.type === 'shell') fitView(); });
+  on('fIso', () => { const F = S.focus; S.isolate = { type: 'slot', plane: F.plane, slot: F.slot, sat: F.sat }; rebuildAll(); renderFocus(); update(0); flyToFocus(); });
+  on('fFly', () => { update(0); flyToFocus(); });
+  on('fClear', clearFocus);
+}
+
+// ------------------------------------------------------------------ network list
+function regimeChip(net) {
+  if (!net.hasPlanned) return '<span class="chip">no notified planes</span>';
+  return { leo: '<span class="chip gold">≤ 2,000 km rule</span>', mixed: '<span class="chip gold">above 2,000 km rule</span>', na: '<span class="chip">Res 8 n/a</span>' }[net.regime] || '';
+}
+function renderList() {
+  const q = $('#netSearch').value.trim().toLowerCase();
+  const list = $('#netList'); list.innerHTML = '';
+  const F = S.focus;
+  for (const net of NETS) {
+    const nameHit = !q || net.name.toLowerCase().includes(q);
+    const satHits = nameHit ? net.satsL : net.satsL.filter(s => s.name.toLowerCase().includes(q));
+    if (!nameHit && !satHits.length) continue;
+    const el = document.createElement('div'); el.className = 'net' + (net.shown ? ' on' : '');
+    const open = Boolean(net.open || (!nameHit && satHits.length));
+    el.innerHTML = `<div class="netrow"><label><input type="checkbox" ${net.shown ? 'checked' : ''}>
+        <span class="netname">${esc(net.name)}<span class="adm">${esc(net.adm)}</span></span></label>
+        <button class="exp" aria-expanded="${open}" title="Shells and satellites">${open ? '▾' : '▸'}</button>
+        <div class="netmeta">${net.planesL.length} planes · ${fmt(net.total_notified)} notified · ${net.satsL.length} reported ${regimeChip(net)}</div></div>`;
+    el.querySelector('input').onchange = e => { net.shown = e.target.checked; if (S.isolate) S.isolate = null; if (S.focus && !net.shown && (S.focus.plane || S.focus.shell).net === net) S.focus = null; rebuildAll(); renderList(); renderFocus(); drawDev(); fitView(); };
+    el.querySelector('.exp').onclick = () => { net.open = !open; renderList(); };
+    if (open) {
+      const body = document.createElement('div'); body.className = 'netbody';
+      if (!net.hasPlanned) body.insertAdjacentHTML('beforeend', `<p class="small muted" style="margin:0">This PDF (${esc(net.pdf_id)}) uses the old layout with no orbital-plane table, so only the reported orbits are drawn (grey).</p>`);
+      for (const sh of net.shells) {
+        const row = document.createElement('div'); row.className = 'shell';
+        const per = sh.planes.every(p => p.nBox === sh.planes[0].nBox) ? `${sh.planes.length} × ${sh.planes[0].nBox}` : `${sh.planes.length} planes, ${fmt(sh.nNot)}`;
+        row.innerHTML = `<input type="checkbox" ${sh.hidden ? '' : 'checked'} title="Show this shell" ${sh.planned ? '' : 'disabled'}>
+          <span>${fmt(sh.inc, 1)}° · ${altText(sh)} · ${per}${sh.planned ? '' : ' (reported)'}${sh.inScope || !sh.planned ? '' : ' <span class="chip">Res 8 n/a</span>'}</span>
+          <button class="linkbtn">${S.isolate && S.isolate.type === 'shell' && S.isolate.shell === sh ? 'shown alone' : 'show alone'}</button>`;
+        row.querySelector('input').onchange = e => { sh.hidden = !e.target.checked; net.shown = true; S.isolate = null; rebuildAll(); renderList(); };
+        row.querySelector('button').onclick = () => focusShell(sh);
+        body.appendChild(row);
+      }
+      if (net.satsL.length) {
+        body.insertAdjacentHTML('beforeend', `<div class="small muted">Reported satellites (${satHits.length}${nameHit ? '' : ' matching'})</div>`);
+        const sl = document.createElement('div'); sl.className = 'satlist';
+        for (const s of satHits) {
+          const b = document.createElement('button');
+          b.className = 'satbtn' + (F && F.sat === s ? ' cur' : '');
+          b.innerHTML = `<span class="dot ${statusOf(s)}"></span>${esc(s.name)}<span class="muted" style="margin-left:auto">p${s.plane.id}</span>`;
+          b.onclick = () => focusSat(s);
+          sl.appendChild(b);
+        }
+        body.appendChild(sl);
+      }
+      el.appendChild(body);
+    }
+    list.appendChild(el);
+  }
+}
+
+// ------------------------------------------------------------------ deviation space (2D, like the professor's zoom panel)
+function drawDev() {
+  const cv = $('#devplot'); if (!cv) return;
+  const W = cv.clientWidth, H = cv.clientHeight, dpr = Math.min(devicePixelRatio, 2);
+  if (!W) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  const F = S.focus, fp = F && F.plane ? F.plane : F && F.shell ? F.shell.planes[0] : null;
+  const leo = fp && fp.inScope ? fp.leo : true;
+  const shownNets = NETS.filter(n => n.shown);
+  const sats = shownNets.flatMap(n => n.satsL).filter(s => s.dA != null && s.plane.inScope && s.plane.leo === leo);
+  // y in km (≤2,000 km rule) or % of notified altitude (above 2,000 km)
+  const yA = s => leo ? s.dA : s.dA / s.plane.apo * 100, yP = s => leo ? s.dP : s.dP / s.plane.per * 100;
+  const lim = { r6: [leo ? 70 : 5, leo ? 2 : 3], r7: [leo ? 100 : 10, leo ? 3 : 4], r11: [leo ? 30 : (fp ? 30 / fp.apo * 100 : 0.4), leo ? 2 : 3] };
+  if (S.tier === 'custom') lim.custom = [leo ? S.customKm : (fp ? S.customKm / fp.apo * 100 : 0.5), S.customDeg];
+  let ymax = (lim.r7[0]) * 1.3, xmax = lim.r7[1] * 1.3;
+  for (const s of sats) { ymax = Math.max(ymax, Math.abs(yA(s)) * 1.1, Math.abs(yP(s)) * 1.1); xmax = Math.max(xmax, Math.abs(s.dI) * 1.1); }
+  const L = 40, R = 10, T = 10, B = 30, pw = W - L - R, ph = H - T - B;
+  const X = v => L + (v + xmax) / (2 * xmax) * pw, Y = v => T + (1 - (v + ymax) / (2 * ymax)) * ph;
+  const ink = css('--ink'), muted = css('--muted'), line = css('--line'), acc = css('--accent');
+  g.font = `11px ${css('--f-body')}`; g.lineWidth = 1;
+  // grid + axes
+  g.strokeStyle = line; g.beginPath(); g.moveTo(X(0), T); g.lineTo(X(0), T + ph); g.moveTo(L, Y(0)); g.lineTo(L + pw, Y(0)); g.stroke();
+  g.fillStyle = muted; g.textAlign = 'center';
+  for (const v of [-xmax * 0.75, 0, xmax * 0.75]) g.fillText(`${v > 0 ? '+' : ''}${v.toFixed(1)}°`, X(v), T + ph + 13);
+  g.fillText('Δ inclination (reported − notified)', L + pw / 2, H - 3);
+  g.textAlign = 'right';
+  for (const v of [-ymax * 0.75, 0, ymax * 0.75]) g.fillText(`${v > 0 ? '+' : ''}${leo ? Math.round(v) : v.toFixed(1) + '%'}`, L - 4, Y(v) + 4);
+  g.save(); g.translate(10, T + ph / 2); g.rotate(-Math.PI / 2); g.textAlign = 'center'; g.fillText(leo ? 'Δ altitude (km)' : 'Δ altitude (% of notified)', 0, 0); g.restore();
+  // tolerance boxes
+  const rect = (a, i, style) => {
+    g.save(); g.strokeStyle = style.strokeStyle; g.lineWidth = style.lineWidth || 1; g.globalAlpha = style.globalAlpha ?? 1;
+    if (style.dash) g.setLineDash(style.dash);
+    if (style.fill) { g.fillStyle = style.fill; g.fillRect(X(-i), Y(a), X(i) - X(-i), Y(-a) - Y(a)); }
+    g.strokeRect(X(-i), Y(a), X(i) - X(-i), Y(-a) - Y(a)); g.restore();
+  };
+  const chosen = S.tier;
+  rect(...lim.r7, { strokeStyle: acc, lineWidth: chosen === 'r7' ? 2 : 1, globalAlpha: chosen === 'r7' ? 1 : 0.6, dash: chosen === 'r7' ? null : [4, 3], fill: chosen === 'r7' ? 'rgba(234,170,0,.14)' : null });
+  rect(...lim.r6, { strokeStyle: acc, lineWidth: chosen === 'r6' ? 2 : 1, fill: chosen === 'r6' ? 'rgba(234,170,0,.18)' : null });
+  rect(...lim.r11, { strokeStyle: acc, lineWidth: chosen === 'r11' ? 2 : 1, dash: chosen === 'r11' ? null : [1, 3], fill: chosen === 'r11' ? 'rgba(234,170,0,.18)' : null });
+  if (lim.custom) rect(...lim.custom, { strokeStyle: css('--navy'), lineWidth: 2, fill: 'rgba(0,48,87,.10)' });
+  // points: ▲ apogee, ▼ perigee
+  const hex = STATUS_HEX();
+  const tri = (x, y, up, r) => { g.beginPath(); g.moveTo(x, y + (up ? -r : r)); g.lineTo(x - r, y + (up ? r * .8 : -r * .8)); g.lineTo(x + r, y + (up ? r * .8 : -r * .8)); g.closePath(); g.fill(); };
+  let atZero = 0;
+  g.globalAlpha = 0.55;
+  for (const s of sats) {
+    s.status = statusOf(s); g.fillStyle = hex[s.status];
+    if (s.dA === 0 && s.dP === 0 && s.dI === 0) { atZero++; continue; }
+    tri(X(s.dI), Y(yA(s)), true, 3.2); tri(X(s.dI), Y(yP(s)), false, 3.2);
+  }
+  g.globalAlpha = 1;
+  if (atZero) { g.fillStyle = hex.good; g.beginPath(); g.arc(X(0), Y(0), 4, 0, TAU); g.fill(); g.fillStyle = ink; g.textAlign = 'left'; g.fillText(`${atZero} exactly as notified`, X(0) + 7, Y(0) - 6); }
+  if (F && F.sat && F.sat.dA != null && F.sat.plane.leo === leo) {
+    const s = F.sat; g.strokeStyle = ink; g.lineWidth = 1.5; g.fillStyle = hex[statusOf(s)];
+    for (const [y, up] of [[yA(s), true], [yP(s), false]]) { tri(X(s.dI), Y(y), up, 6); g.beginPath(); g.arc(X(s.dI), Y(y), 9, 0, TAU); g.stroke(); }
+  }
+  const nOther = shownNets.flatMap(n => n.satsL).filter(s => s.dA != null && s.plane.inScope && s.plane.leo !== leo).length;
+  $('#devCaption').innerHTML = `Reported minus notified orbit for each reported satellite in the shown networks (▲ apogee, ▼ perigee). Boxes: resolves 6 (solid), resolves 7 (dashed), resolves 11 (dotted)${lim.custom ? ', custom (navy)' : ''}. ${leo ? 'Planes at or below 2,000 km.' : 'Planes above 2,000 km.'}${nOther ? ` ${nOther} satellite(s) under the other altitude rule are not plotted.` : ''}`;
+  renderStats(shownNets);
+}
+function renderStats(nets) {
+  const all = nets.flatMap(n => n.satsL);
+  const assess = all.filter(s => s.dA != null && s.plane.inScope);
+  let full = 0, part = 0, none = 0, beyond7 = 0;
+  for (const s of assess) {
+    const n = outFlags(s, tolFor(s.plane, S.tier)).filter(Boolean).length;
+    if (n === 0) full++; else if (n < 3) part++; else none++;
+    if (outFlags(s, tolFor(s.plane, 'r7')).some(Boolean)) beyond7++;
+  }
+  const leoS = assess.filter(s => s.plane.leo);
+  const q = (arr, f) => { if (!arr.length) return null; const v = arr.map(f).sort((a, b) => a - b); return [v[Math.floor(0.95 * (v.length - 1))], v[v.length - 1]]; };
+  const alt = q(leoS, s => Math.max(Math.abs(s.dA), Math.abs(s.dP))), inc = q(leoS, s => Math.abs(s.dI));
+  $('#stats').innerHTML = !nets.length ? '<span class="muted">Tick a network to see its numbers.</span>' : `
+    <span>Reported satellites in shown networks</span><span class="n">${fmt(all.length)}</span>
+    <span>Not assessable (no notified plane or Res 8 n/a)</span><span class="n">${fmt(all.length - assess.length)}</span>
+    <span class="ok">All 3 parameters within ${TIER_NAME[S.tier]}</span><span class="n">${fmt(full)}</span>
+    <span class="wn">1 or 2 parameters outside</span><span class="n">${fmt(part)}</span>
+    <span class="bd">All 3 outside</span><span class="n">${fmt(none)}</span>
+    <span>Outside resolves 7 on any parameter</span><span class="n">${fmt(beyond7)}</span>
+    ${alt ? `<span>Altitude deviation that covers 95% / 100% (≤2,000 km planes)</span><span class="n">${fmt(alt[0], 0)} / ${fmt(alt[1], 0)} km</span>
+    <span>Inclination deviation that covers 95% / 100%</span><span class="n">${fmt(inc[0], 2)} / ${fmt(inc[1], 2)}°</span>` : ''}`;
+}
+
+// ------------------------------------------------------------------ controls
+function onTolChange() { $('#customBox').hidden = S.tier !== 'custom'; rebuildEnv(); colorSpheres(); renderList(); renderFocus(); drawDev(); }
+document.querySelectorAll('input[name=tier]').forEach(r => r.onchange = () => { S.tier = r.value; onTolChange(); });
+$('#cKm').oninput = e => { S.customKm = +e.target.value; $('#cKmOut').textContent = `${S.customKm} km`; onTolChange(); };
+$('#cDeg').oninput = e => { S.customDeg = +e.target.value; $('#cDegOut').textContent = `${S.customDeg.toFixed(2)}°`; onTolChange(); };
+$('#outer').onchange = e => { S.outer = e.target.checked; rebuildEnv(); };
+const MODE_HELP = {
+  figure: 'The box keeps its full ±Δi width all the way round, like the 2D figure (Δi measured at Earth\'s centre).',
+  geometric: 'Edges are the orbits with inclination i ± Δi and the same node: the box is full width at the highest latitude and pinches to a line where the orbit crosses the equator.',
+};
+$('#mode').onchange = e => { S.mode = e.target.value; $('#modeHelp').textContent = MODE_HELP[S.mode]; rebuildEnv(); };
+$('#modeHelp').textContent = MODE_HELP.figure;
+$('#exag').oninput = e => { S.X = +e.target.value; $('#exagOut').textContent = `×${S.X}`; rebuildEnv(); };
+$('#env').onchange = e => { S.env = e.target.value; rebuildEnv(); };
+$('#showBoxes').onchange = e => { S.showBoxes = e.target.checked; boxMesh.count = S.showBoxes ? BOXREF.length : 0; };
+$('#showSph').onchange = e => { S.showSph = e.target.checked; sphMesh.count = S.showSph ? VSATS.length : 0; };
+$('#ghost').onchange = e => { S.ghost = e.target.checked; ghostObj.visible = S.ghost; };
+$('#isoFocus').onchange = e => { S.isoFocus = e.target.checked; };
+$('#marker').oninput = e => { S.markerPx = +e.target.value; $('#markerOut').textContent = `${S.markerPx} px`; };
+$('#netSearch').oninput = renderList;
+function setSpeed() {
+  const v = +$('#speed').value; S.speed = Math.round(Math.pow(10, v / 25));
+}
+$('#speed').oninput = setSpeed;
+$('#play').onclick = () => { S.playing = !S.playing; $('#play').textContent = S.playing ? '❚❚' : '▶'; };
+addEventListener('keydown', e => { if (e.code === 'Space' && !/INPUT|SELECT|TEXTAREA|BUTTON/.test(document.activeElement.tagName)) { e.preventDefault(); $('#play').click(); } });
+$('#resetTrails').onclick = () => { for (const p of VIS) { p.revealed.fill(0); p.revealCount = 0; p.lastSeg.fill(-1); } trailN = 0; if (envOn) { envOn.fill(0); edgeOn.fill(0); } dirty.trail = dirty.env = true; };
+$('#follow').onclick = () => { if (!S.focus || !S.focus.plane) return; S.follow = !S.follow; $('#follow').classList.toggle('on', S.follow); lastFocusPos = null; if (S.follow) flyToFocus(); };
+$('#fit').onclick = fitView;
+$('#theme').onclick = () => { theme = theme === 'dark' ? 'light' : 'dark'; try { localStorage.setItem('orbitTheme', theme); } catch (e) {} applyTheme(); };
+controls.addEventListener('start', () => { fly.on = false; });
+$('#builtDate').textContent = DATA.meta.built + (DATA.meta.last_run ? ` from the pipeline run of ${DATA.meta.last_run}` : '');
+
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  M.trail.resolution.set(w, h);
+}
+new ResizeObserver(() => { resize(); drawDev(); }).observe(stage);
+
+// ------------------------------------------------------------------ start
+const start = NETS.find(n => n.name === 'MCSAT LEO') || NETS.find(n => n.hasPlanned) || NETS[0];
+start.shown = true; start.open = true;
+setSpeed(); $('#play').textContent = S.playing ? '❚❚' : '▶'; rebuildAll(); renderList(); applyTheme(); resize(); fitView();
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  const dtSim = S.playing ? dt * S.speed : 0; S.t += dtSim;
+  update(dtSim); cameraStep(); controls.update(); hoverStep();
+  const h = Math.floor(S.t / 3600), m = Math.floor(S.t / 60) % 60, s = Math.floor(S.t) % 60;
+  $('#clock').textContent = `×${fmt(S.speed)} · t+${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
+  renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+window.__orbit = { S, NETS, scene, camera };   // for debugging in the console
+</script>
+</body>
+</html>
