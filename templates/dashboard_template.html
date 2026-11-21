@@ -596,7 +596,9 @@ function cell(t, s, r, col) {
     const cls = v > 0 ? "d-plus" : v < 0 ? "d-minus" : "";
     return `<td class="num ${cls}">${v > 0 ? "+" : ""}${fmtN(v)}</td>`;
   }
-  if (typeof v === "number") return `<td class="num">${/(_id|_no|_number)$/.test(col) ? v : fmtN(v)}</td>`;
+  // MHz values are shown as in the reports (17803.5), without a thousands separator.
+  if (typeof v === "number") return `<td class="num">${/(_id|_no|_number|_mhz)$/.test(col) ? v : fmtN(v)}</td>`;
+  if (col === "freq_band_ids") return `<td class="mono">${esc(text.split(",").map(x => x.trim()).join(", "))}</td>`;
   if (WIDE.has(col)) return `<td class="wide">${esc(text)}</td>`;
   if (/^\d{4}-\d{2}-\d{2}$/.test(text) || /_id$/.test(col)) return `<td class="mono">${esc(text)}</td>`;
   return `<td title="${text.length > 40 ? esc(text) : ""}">${esc(text)}</td>`;
