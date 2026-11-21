@@ -62,6 +62,12 @@ jobs:
       - name: Build the dashboard
         run: python build_dashboard.py
 
+      # 3D view of the planned orbits with the Resolution 8 tolerances. If it fails, the step
+      # shows a warning and everything else is still saved; last week's page is kept.
+      - name: Build the 3D orbit page
+        continue-on-error: true
+        run: python build_orbit_viz.py
+
       - name: Save results to the repository
         run: |
           git config user.name "res35-bot"
