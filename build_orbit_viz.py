@@ -37,6 +37,17 @@ def num(v, nd=3):
     return int(v) if v.is_integer() else round(v, nd)
 
 
+def no_nan(v):
+    """Blank cells come out of pandas as NaN, which is not valid JSON: turn them into null."""
+    if isinstance(v, float) and math.isnan(v):
+        return None
+    if isinstance(v, dict):
+        return {k: no_nan(x) for k, x in v.items()}
+    if isinstance(v, list):
+        return [no_nan(x) for x in v]
+    return v
+
+
 def build_data(book):
     pdfs = book["pdfs"].copy()
     planes = book["planes"]
@@ -90,7 +101,9 @@ def main():
 
     book = pd.read_excel(MAIN, sheet_name=None)
     data = build_data(book)
-    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    # allow_nan=False makes any blank cell that slips through fail here, not silently in the browser
+    payload = json.dumps(no_nan(data), ensure_ascii=False, separators=(",", ":"),
+                         allow_nan=False).replace("</", "<\\/")
     logo = "data:image/png;base64," + base64.b64encode(LOGO.read_bytes()).decode() if LOGO.exists() else ""
     html = (TEMPLATE.read_text(encoding="utf-8")
             .replace("/*__DATA__*/null", payload).replace("__ESPL_LOGO__", logo))
