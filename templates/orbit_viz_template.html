@@ -266,6 +266,11 @@ details ul { padding-left: 18px; margin: 6px 0; }
   </aside>
 </div>
 
+<script>
+  // If the 3D code fails to start (no internet for three.js, bad data), say so instead of "Loading…" forever.
+  addEventListener('error', e => { const l = document.getElementById('loading');
+    if (l) l.textContent = 'The 3D view could not start: ' + (e.message || 'a script failed to load') + '. Check the internet connection and reload; if it persists, rebuild with build_orbit_viz.py.'; }, true);
+</script>
 <script id="orbit-data" type="application/json">/*__DATA__*/null</script>
 <script type="module">
 import * as THREE from 'three';
@@ -996,7 +1001,7 @@ function renderFocus() {
       <dl class="kv">${p.planned ? `<dt>Notified plane</dt><dd>${altText(p)}, i ${fmt(p.inc, 2)}°, ω ${fmt(p.argp)}°</dd>
       <dt>Tolerance (${TIER_NAME[S.tier]})</dt><dd>${t ? `±${fmt(t.dA)} km apogee, ±${fmt(t.dP)} km perigee, ±${fmt(t.dI, 2)}°` : 'Res 8 does not apply (apogee ≥ 15,000 km or e ≥ 0.5)'}</dd>`
       : `<dt>Notified plane</dt><dd>Not in this PDF (old layout)</dd>`}
-      <dt>Source</dt><dd><a href="${esc(p.net.pdf_url)}" target="_blank" rel="noopener">${esc(p.net.pdf_id)}</a> (${esc(p.net.milestone)}, BR IFIC ${esc(p.net.brific_date)})</dd></dl>
+      <dt>Source</dt><dd>${p.net.pdf_url ? `<a href="${esc(p.net.pdf_url)}" target="_blank" rel="noopener">${esc(p.net.pdf_id)}</a>` : `${esc(p.net.pdf_id)} (no PDF link in the SNL)`} (${esc(p.net.milestone)}${p.net.brific_date ? `, BR IFIC ${esc(p.net.brific_date)}` : ''})</dd></dl>
       ${rows}
       <div class="btnrow">
         ${S.isolate && S.isolate.type === 'slot' ? '<button class="btn" id="fShowNet">Show whole network</button>' : '<button class="btn" id="fIso">Show alone</button>'}
