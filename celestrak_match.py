@@ -16,7 +16,10 @@ How names are matched (PDF name -> CelesTrak OBJECT_NAME), ignoring case, spaces
   Iridium NEXT                 IR-102        -> IRIDIUM 102
   O3B / O3B mPOWER (SES)       FM5 -> O3B FM5, MPOWER F5 -> O3B MPOWER F5
 Each match is then checked against the launch date in the PDF (CelesTrak SATCAT launch
-date within 3 days). Names that give no match or several matches are listed, not guessed.
+date within 3 days). Only confirmed matches (name AND launch date) are used. A name match
+whose launch date differs or cannot be checked is marked "needs review" and left out of the
+history and the tracked values until someone checks it. Names that give no match or several
+matches are listed, not guessed.
 
 Orbit numbers: CelesTrak element sets are SGP4 mean elements. The semi-major axis is taken
 from the mean motion after SGP4's own correction (Brouwer mean motion, WGS-72 constants),
@@ -166,11 +169,14 @@ def match_names(sats, satcat):
             continue
         c = cands.iloc[0]
         ld = pd.to_datetime(c["LAUNCH_DATE"], errors="coerce")
-        ok = pd.notna(ld) and pd.notna(row["pdf_launch_date"]) and abs((ld - row["pdf_launch_date"]).days) <= 3
+        checkable = pd.notna(ld) and pd.notna(row["pdf_launch_date"])
+        ok = checkable and abs((ld - row["pdf_launch_date"]).days) <= 3
         row.update(norad_cat_id=int(c["NORAD_CAT_ID"]), celestrak_name=c["OBJECT_NAME"], object_id=c["OBJECT_ID"],
                    match_rule=rule, satcat_launch_date=ld, decay_date=pd.to_datetime(c["DECAY_DATE"], errors="coerce"),
-                   match_status="matched" if ok else "matched, launch date differs",
-                   note=None if ok else "Name matches but the CelesTrak launch date is more than 3 days from the PDF's; check by hand.")
+                   match_status="matched" if ok else "needs review",
+                   note=None if ok else ("Name matches but the CelesTrak launch date is more than 3 days from the PDF's. "
+                                         if checkable else "Name matches but there is no launch date to check it against. ")
+                                        + "Not used until checked by hand.")
         rows.append(row)
     return pd.DataFrame(rows)
 
@@ -215,7 +221,7 @@ COLUMN_DEFS = [
     ("network_name", "ITU satellite network whose latest milestone PDF lists the satellite."),
     ("norad_cat_id", "NORAD catalog number of the matched object (CelesTrak SATCAT)."),
     ("celestrak_name", "Object name in CelesTrak's catalogue."),
-    ("match_status", "matched / matched, launch date differs / not matched (see Matches sheet)."),
+    ("match_status", "matched (name and launch date confirmed; the only ones used) / needs review (name matches, launch date differs or is missing; not used yet) / not matched."),
     ("orbit_source", "SupGP = CelesTrak element set derived from operator-supplied orbit data (preferred when present); GP = standard element set from the US Space Force catalogue, as published by CelesTrak."),
     ("epoch", "Time (UTC) the tracked orbit refers to."),
     ("tracked_*", "Apogee / perigee altitude (km above a 6,378.137 km Earth) and inclination (deg) from CelesTrak's mean elements."),
@@ -236,7 +242,8 @@ def run(today=None):
     matches = match_names(sats, satcat)
     CT.mkdir(parents=True, exist_ok=True)
     matches.to_csv(MATCHES, index=False, date_format="%Y-%m-%d")
-    ids = set(matches["norad_cat_id"].dropna().astype(int))
+    confirmed = matches[matches["match_status"] == "matched"]
+    ids = set(confirmed["norad_cat_id"].astype(int))
 
     # today's orbits of the matched satellites, kept as history
     snap = orbits[orbits["NORAD_CAT_ID"].isin(ids)].copy()
@@ -253,11 +260,11 @@ def run(today=None):
     rows = []
     for r in sats.itertuples():
         mm = m.loc[r.satellite_name] if r.satellite_name in m.index else None
-        nid = None if mm is None or pd.isna(mm["norad_cat_id"]) else int(mm["norad_cat_id"])
+        nid = None if mm is None or mm["match_status"] != "matched" else int(mm["norad_cat_id"])
         o = best.loc[nid] if nid is not None and nid in best.index else None
         row = {
             "satellite_name": r.satellite_name, "network_name": r.network_name, "orbital_plane_id": r.orbital_plane_id,
-            "norad_cat_id": nid, "celestrak_name": None if mm is None else mm["celestrak_name"],
+            "norad_cat_id": nid, "celestrak_name": None if nid is None else mm["celestrak_name"],
             "match_status": None if mm is None else mm["match_status"],
             "orbit_source": None if o is None else o["source"], "epoch": None if o is None else o["EPOCH"],
             "tracked_apogee_altitude_km": None if o is None else o["apogee_altitude_km"],
@@ -269,7 +276,7 @@ def run(today=None):
             "reported_apogee_altitude_km": r.apogee_altitude_km,
             "reported_perigee_altitude_km": r.perigee_altitude_km,
             "reported_inclination_deg": r.inclination_deg,
-            "decay_date": None if mm is None else mm["decay_date"],
+            "decay_date": None if nid is None else mm["decay_date"],
         }
         for p, t, n in (("apogee_altitude_km", "tracked_apogee_altitude_km", "notified_apogee_altitude_km"),
                         ("perigee_altitude_km", "tracked_perigee_altitude_km", "notified_perigee_altitude_km"),
@@ -283,14 +290,17 @@ def run(today=None):
             row["tracked_minus_notified_apogee_altitude_km"], row["tracked_minus_notified_perigee_altitude_km"],
             row["tracked_minus_notified_inclination_deg"])
         if o is None:
-            row["res8_status_tracked"] = ("decayed" if mm is not None and pd.notna(mm["decay_date"])
-                                          else "no tracked orbit" if nid is not None else "not matched")
+            row["res8_status_tracked"] = ("decayed" if nid is not None and pd.notna(mm["decay_date"])
+                                          else "no tracked orbit" if nid is not None
+                                          else "needs review (not used)" if mm is not None and mm["match_status"] == "needs review"
+                                          else "not matched")
         rows.append(row)
     tracked = pd.DataFrame(rows)
 
     # summary
     n_names = len(matches)
-    n_match = int(matches["match_status"].str.startswith("matched").sum())
+    n_match = int((matches["match_status"] == "matched").sum())
+    n_review = int((matches["match_status"] == "needs review").sum())
     n_orbit = int(tracked["orbit_source"].notna().sum())
     status_counts = tracked["res8_status_tracked"].value_counts()
     readme = [
@@ -299,7 +309,8 @@ def run(today=None):
         ("Source", "CelesTrak (https://celestrak.org), downloaded daily without a login: GP data for active satellites, "
                    "Supplemental GP (operator-derived) data where available, and the SATCAT catalogue. Please credit CelesTrak."),
         ("Downloaded", today.isoformat()),
-        ("Satellite names in latest PDFs", f"{n_names:,} (matched to a NORAD number: {n_match:,})"),
+        ("Satellite names in latest PDFs", f"{n_names:,}: {n_match:,} confirmed matches (name and launch date) are used; "
+                                            f"{n_review:,} need review and {n_names - n_match - n_review:,} have no match, and are left out"),
         ("Rows with a tracked orbit today", f"{n_orbit:,} of {len(tracked):,} network-satellite rows"),
         ("Res 8 status (tracked orbit)", "; ".join(f"{k}: {v:,}" for k, v in status_counts.items())),
         ("History", "data/celestrak/history/YYYY/YYYY-MM-DD.csv.gz keeps each day's orbit of every matched satellite "
