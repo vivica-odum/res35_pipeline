@@ -8,41 +8,20 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Condensed:wght@600;700&family=Roboto+Mono:wght@400;500&display=swap">
 <style>
-/* ESPL house style (same tokens as res35_dashboard.html): white ground, grey hairlines,
-   Roboto / Roboto Condensed, Tech Gold headings, the lab's yellow for the planned orbits. */
+/* ESPL house style, always light like the Res 35 dashboard and the SBI model:
+   white ground, grey hairlines, Roboto / Roboto Condensed, Tech Gold headings, yellow for the Res 8 limits.
+   Layout: fixed left header (title + network picker), scrolling network details, white 3D stage, right-hand controls. */
 :root {
-  --bg: #ffffff; --surface: #ffffff; --sunk: #f5f5f5; --stage: #0b0f14;
-  --ink: #262626; --muted: #6b6b6b; --line: #dddddd;
+  --bg: #ffffff; --surface: #ffffff; --sunk: #f6f6f6; --stage: #ffffff;
+  --ink: #262626; --muted: #6b6b6b; --line: #e1e1e1;
   --accent: #b88b13; --yellow: #eaaa00; --head: #a4925a; --link: #74652f;
-  --gold-soft: #fbf3d6; --hover: #fffaea; --navy: #003057;
-  --good: #2e7d4f; --warn: #d9822b; --bad: #b3261e; --na: #8f8f8f;
-  --shadow: 0 12px 35px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.05);
-  --logo-filter: none;
+  --gold-soft: #fbf3d6; --hover: #fffaea; --navy: #003057; --orbit: #4d4d4d;
+  --good: #2e7d4f; --warn: #d9822b; --bad: #b3261e; --na: #9a9a9a;
+  --shadow: 0 10px 30px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05);
   --f-display: "Roboto Condensed", "Arial Narrow", Arial, sans-serif;
   --f-body: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --f-mono: "Roboto Mono", ui-monospace, Consolas, monospace;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-  --bg: #121212; --surface: #1b1b1b; --sunk: #232323; --stage: #0b0f14;
-  --ink: #ececec; --muted: #a6a6a6; --line: #333333;
-  --accent: #eaaa00; --yellow: #eaaa00; --head: #c9b26f; --link: #e5c66b;
-  --gold-soft: #2c2510; --hover: #24200f; --navy: #9cc0e6;
-  --good: #6fcf97; --warn: #f0a36b; --bad: #f08a80; --na: #8a8a8a;
-  --shadow: 0 12px 35px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.3);
-  --logo-filter: invert(1);
-  color-scheme: dark;
-}
-}
-:root[data-theme="dark"] {
-  --bg: #121212; --surface: #1b1b1b; --sunk: #232323; --stage: #0b0f14;
-  --ink: #ececec; --muted: #a6a6a6; --line: #333333;
-  --accent: #eaaa00; --yellow: #eaaa00; --head: #c9b26f; --link: #e5c66b;
-  --gold-soft: #2c2510; --hover: #24200f; --navy: #9cc0e6;
-  --good: #6fcf97; --warn: #f0a36b; --bad: #f08a80; --na: #8a8a8a;
-  --shadow: 0 12px 35px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.3);
-  --logo-filter: invert(1);
-  color-scheme: dark;
+  color-scheme: light;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -52,43 +31,49 @@ a { color: var(--link); }
 button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.app { display: grid; grid-template-columns: 300px minmax(0,1fr) 340px; height: 100vh; }
-.panel { background: var(--surface); overflow-y: auto; overscroll-behavior: contain; }
-.left { border-right: 1px solid var(--line); }
-.right { border-left: 1px solid var(--line); }
-.sec { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.app { display: grid; grid-template-columns: 340px minmax(0,1fr) 340px; height: 100%; }
+.left { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--line); background: var(--surface); }
+.left-head { flex: none; padding: 16px 18px 14px; border-bottom: 1px solid var(--line); display: grid; gap: 10px; }
+.left-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 14px 18px 24px; }
+.right { overflow-y: auto; overscroll-behavior: contain; border-left: 1px solid var(--line); background: var(--surface); }
+.sec { padding: 14px 18px; border-bottom: 1px solid var(--line); }
 .sec:last-child { border-bottom: 0; }
-h1 { text-wrap: balance; font: 700 21px/1.15 var(--f-display); color: var(--head); margin: 10px 0 4px; letter-spacing: .01em; }
+h1 { text-wrap: balance; font: 700 21px/1.15 var(--f-display); color: var(--head); margin: 2px 0 0; letter-spacing: .01em; }
 h2 { font: 700 13px/1.2 var(--f-display); color: var(--head); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 10px; }
+h3 { font: 700 13px/1.2 var(--f-display); color: var(--head); text-transform: uppercase; letter-spacing: .06em; margin: 18px 0 8px; }
 .sub { color: var(--muted); font-size: 12.5px; margin: 0; }
-.logo img { height: 34px; width: auto; filter: var(--logo-filter); display: block; }
+.logo img { height: 32px; width: auto; display: block; }
 .mono { font-family: var(--f-mono); font-size: 12px; }
 .muted { color: var(--muted); }
 .small { font-size: 12px; }
+label.lab { font-size: 12px; color: var(--muted); display: grid; gap: 4px; }
+select, input[type=search] { width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--sunk); }
+select:hover, input[type=search]:hover { border-color: #cfcfcf; }
+#netSelect { font-weight: 500; background: var(--surface); border-color: #cfcfcf; }
 
-/* network list */
-.search { width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--sunk); }
-.netlist { display: grid; gap: 2px; margin-top: 10px; }
-.net { border-radius: 8px; }
-.net.on { background: var(--hover); }
-.netrow { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; padding: 6px 6px 6px 8px; }
-.netrow label { display: contents; cursor: pointer; }
-.netname { font-weight: 500; }
-.netname .adm { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 4px; }
-.netmeta { grid-column: 2 / 4; color: var(--muted); font-size: 11.5px; margin-top: -4px; }
-.exp { border: 0; background: none; cursor: pointer; color: var(--muted); padding: 2px 6px; border-radius: 6px; font-size: 12px; }
-.exp:hover { background: var(--sunk); color: var(--ink); }
-.netbody { padding: 0 8px 10px 30px; display: grid; gap: 6px; }
-.chip { display: inline-block; font-size: 10.5px; padding: 1px 6px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
-.chip.gold { border-color: var(--accent); color: var(--accent); }
-.shell { display: grid; grid-template-columns: auto 1fr auto; gap: 6px; align-items: center; font-size: 12px; }
+/* network details */
+.netname { font: 700 19px/1.2 var(--f-display); margin: 0; }
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 4px; }
+.kpi { background: var(--sunk); border-radius: 8px; padding: 8px 10px; }
+.kpi b { display: block; font: 700 17px/1.1 var(--f-display); }
+.kpi span { font-size: 11.5px; color: var(--muted); }
+.chip { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.chip.gold { border-color: var(--accent); color: var(--link); background: var(--gold-soft); }
+table.grid { width: 100%; border-collapse: collapse; font-size: 12px; }
+table.grid th, table.grid td { padding: 5px 6px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+table.grid th:first-child, table.grid td:first-child { text-align: left; }
+table.grid th { font-weight: 500; color: var(--muted); font-size: 11px; }
+table.grid tr.click { cursor: pointer; }
+table.grid tr.click:hover td { background: var(--hover); }
+table.grid tr.cur td { background: var(--gold-soft); }
 .linkbtn { border: 0; background: none; color: var(--link); cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 2px; font-size: 12px; }
-.satlist { max-height: 220px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; }
-.satbtn { display: flex; align-items: center; gap: 7px; width: 100%; border: 0; background: none; text-align: left; padding: 3px 8px; cursor: pointer; font-size: 12px; }
+.satlist { border: 1px solid var(--line); border-radius: 8px; max-height: 360px; overflow-y: auto; }
+.satbtn { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; border-bottom: 1px solid #f0f0f0; background: none; text-align: left; padding: 5px 10px; cursor: pointer; font-size: 12.5px; }
+.satbtn:last-child { border-bottom: 0; }
 .satbtn:hover, .satbtn.cur { background: var(--gold-soft); }
-.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--na); }
+.satbtn .muted { margin-left: auto; font-size: 11.5px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--na); }
 .dot.good { background: var(--good); } .dot.warn { background: var(--warn); } .dot.bad { background: var(--bad); }
-.sq { width: 9px; height: 9px; flex: none; background: var(--yellow); border: 1px solid var(--accent); }
 
 /* stage */
 .stage { position: relative; background: var(--stage); min-width: 0; }
@@ -96,34 +81,35 @@ h2 { font: 700 13px/1.2 var(--f-display); color: var(--head); text-transform: up
 .bar { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; pointer-events: none; }
 .bar > * { pointer-events: auto; }
 .pill { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 5px 8px; box-shadow: var(--shadow); }
+.pill select { width: auto; padding: 4px 8px; background: var(--surface); }
 .btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 4px 10px; cursor: pointer; white-space: nowrap; }
 .btn:hover { background: var(--hover); border-color: var(--accent); }
 .btn.on { background: var(--gold-soft); border-color: var(--accent); }
-.btn.play { min-width: 36px; font-weight: 700; }
-.clock { font: 500 12px var(--f-mono); color: var(--muted); min-width: 160px; }
+.btn.play { min-width: 34px; font-weight: 700; }
+.clock { font: 500 12px var(--f-mono); color: var(--muted); }
 input[type=range] { accent-color: var(--accent); }
-.legend { position: absolute; left: 12px; bottom: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; box-shadow: var(--shadow); font-size: 11.5px; display: grid; gap: 4px; max-width: 330px; }
+.legend { position: absolute; left: 12px; bottom: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; box-shadow: var(--shadow); font-size: 11.5px; display: grid; gap: 5px; max-width: 360px; }
 .legend .row { display: flex; align-items: center; gap: 8px; }
-.lg-box { width: 10px; height: 10px; background: var(--yellow); border: 1px solid #6b5208; flex: none; }
+.lg-box { width: 9px; height: 9px; background: var(--yellow); border: 1px solid #8a6a0b; flex: none; }
 .lg-sph { width: 10px; height: 10px; border-radius: 50%; flex: none; }
-.lg-tol { width: 22px; height: 12px; background: rgba(234,170,0,.3); border: 1.5px solid var(--accent); flex: none; }
-.lg-out { width: 22px; height: 12px; border: 1px solid var(--accent); opacity: .55; flex: none; }
-.lg-trail { width: 22px; height: 0; border-top: 3px solid #ffffff; outline: 1px solid var(--line); flex: none; }
+.lg-tol { width: 22px; height: 12px; background: rgba(234,170,0,.25); border: 1.5px solid var(--accent); flex: none; }
+.lg-out { width: 22px; height: 12px; border: 1px solid var(--accent); opacity: .6; flex: none; }
+.lg-trail { width: 22px; height: 0; border-top: 2.5px solid var(--orbit); flex: none; }
 .note { position: absolute; right: 12px; bottom: 12px; max-width: 360px; background: var(--surface); border: 1px solid var(--accent); border-radius: 10px; padding: 8px 10px; font-size: 12px; box-shadow: var(--shadow); }
-.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; font-size: 12px; box-shadow: var(--shadow); max-width: 280px; z-index: 5; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; font-size: 12px; box-shadow: var(--shadow); max-width: 290px; z-index: 5; }
 .tip b { font-weight: 500; }
-.loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); }
+.loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); padding: 24px; text-align: center; }
 
 /* right panel */
 .field { display: grid; gap: 4px; margin-bottom: 10px; }
 .field > span { font-size: 12px; color: var(--muted); }
-.radio { display: grid; gap: 4px; }
+.radio { display: grid; gap: 6px; }
 .radio label { display: grid; grid-template-columns: auto 1fr; gap: 6px; align-items: start; cursor: pointer; font-size: 12.5px; }
+.radio label b { font-weight: 500; }
 .radio small { display: block; color: var(--muted); font-size: 11.5px; }
 .check { display: flex; gap: 6px; align-items: center; font-size: 12.5px; cursor: pointer; margin: 3px 0; }
 .slider { display: grid; grid-template-columns: 1fr 64px; gap: 8px; align-items: center; }
 .slider output { font: 12px var(--f-mono); text-align: right; }
-select { padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--sunk); width: 100%; }
 table.dev { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
 table.dev th, table.dev td { padding: 3px 4px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
 table.dev th:first-child, table.dev td:first-child { text-align: left; }
@@ -136,16 +122,20 @@ table.dev th { font-weight: 500; color: var(--muted); font-size: 11px; }
 canvas.devplot { width: 100%; height: 240px; display: block; background: var(--sunk); border-radius: 8px; }
 .stats { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; font-size: 12.5px; margin-top: 8px; }
 .stats .n { font-family: var(--f-mono); text-align: right; }
-details summary { cursor: pointer; color: var(--head); font: 700 13px var(--f-display); text-transform: uppercase; letter-spacing: .06em; }
+details summary { cursor: pointer; color: var(--link); font-size: 12.5px; font-weight: 500; }
+details.big summary { color: var(--head); font: 700 13px var(--f-display); text-transform: uppercase; letter-spacing: .06em; }
 details p, details li { font-size: 12.5px; }
 details ul { padding-left: 18px; margin: 6px 0; }
+.zones { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0 4px; }
+.zones td, .zones th { padding: 4px 5px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
+.zones th { font-weight: 500; color: var(--muted); font-size: 11px; }
 
 @media (max-width: 1100px) {
   body { overflow: auto; }
   .app { grid-template-columns: 1fr; height: auto; }
   .stage { height: 70vh; order: -1; }
-  .left, .right { border: 0; border-top: 1px solid var(--line); overflow: visible; }
-  .clock { min-width: 0; }
+  .left, .right { border: 0; border-top: 1px solid var(--line); }
+  .left-body { overflow: visible; }
 }
 </style>
 <script type="importmap">
@@ -157,18 +147,17 @@ details ul { padding-left: 18px; margin: 6px 0; }
 </head>
 <body>
 <div class="app">
-  <!-- ======================= left: networks ======================= -->
-  <aside class="panel left">
-    <div class="sec">
+  <!-- ======================= left: fixed header + scrolling network details ======================= -->
+  <aside class="left">
+    <div class="left-head">
       <a class="logo" href="https://espl.ae.gatech.edu/" target="_blank" rel="noopener"><img src="__ESPL_LOGO__" alt="Georgia Tech ESPL"></a>
-      <h1>Planned orbits vs. Resolution 8 tolerances</h1>
-      <p class="sub">Notified orbital planes from the latest Res 35 milestone PDF of each network, with the WRC-23 Resolution 8 orbital tolerances drawn around each planned satellite.</p>
+      <h1>Planned orbits and Resolution 8 tolerances</h1>
+      <p class="sub">Each network's notified orbits from its latest Res 35 milestone report, with the ITU Resolution 8 (WRC-23) limits on how far a satellite may sit from them.</p>
+      <label class="lab" for="netSelect">Network
+        <select id="netSelect"></select></label>
+      <input type="search" id="satSearch" placeholder="Find a reported satellite" aria-label="Find a reported satellite by name">
     </div>
-    <div class="sec">
-      <h2>Networks</h2>
-      <input class="search" id="netSearch" type="search" placeholder="Filter networks or satellites" aria-label="Filter networks or satellites">
-      <div class="netlist" id="netList"></div>
-    </div>
+    <div class="left-body" id="netDetails"></div>
   </aside>
 
   <!-- ======================= centre: 3D ======================= -->
@@ -176,41 +165,51 @@ details ul { padding-left: 18px; margin: 6px 0; }
     <div class="loading" id="loading">Loading 3D view…</div>
     <div class="bar">
       <div class="pill">
-        <button class="btn play" id="play" title="Play / pause (space)">❚❚</button>
-        <input type="range" id="speed" min="0" max="100" step="0.5" value="69.5" aria-label="Simulation speed" style="width:120px">
-        <span class="clock" id="clock">×600</span>
+        <button class="btn play" id="play" title="Play / pause (space)" aria-label="Play or pause">❚❚</button>
+        <select id="speed" aria-label="Simulation speed: simulated time per real second">
+          <option value="1">Real time</option>
+          <option value="60">1/1440 day per second (1 min)</option>
+          <option value="600" selected>1/144 day per second (10 min)</option>
+          <option value="3600">1/24 day per second (1 hour)</option>
+          <option value="21600">1/4 day per second (6 hours)</option>
+          <option value="86400">1 day per second</option>
+        </select>
+        <span class="clock" id="clock"></span>
       </div>
       <div class="pill">
-        <button class="btn" id="resetTrails" title="Clear the traced orbits and envelopes and draw them again">Retrace</button>
-        <button class="btn" id="follow" title="Keep the camera on the focused satellite">Follow</button>
+        <button class="btn" id="resetTrails" title="Clear the traced orbits and tolerance bands and draw them again">Retrace</button>
+        <button class="btn" id="follow" title="Keep the camera on the selected satellite">Follow</button>
         <button class="btn" id="fit" title="Show the whole Earth and every shown orbit">Fit view</button>
-        <button class="btn" id="theme" title="Light / dark">◐</button>
       </div>
     </div>
     <div class="legend" id="legend">
-      <div class="row"><span class="lg-box"></span>Planned satellite slot (a box: not a real satellite)</div>
-      <div class="row"><span class="lg-sph" style="background:var(--good)"></span><span class="lg-sph" style="background:var(--warn)"></span><span class="lg-sph" style="background:var(--bad)"></span>Reported satellite (sphere), by tolerance status</div>
-      <div class="row"><span class="lg-trail"></span>Planned orbit (white), drawn once a satellite has flown it</div>
-      <div class="row"><span class="lg-tol"></span><span id="lgTolText">Res 8 tolerance (resolves 6)</span></div>
-      <div class="row" id="lgOuterRow"><span class="lg-out"></span>Outer outline: resolves 7 limit</div>
+      <div class="row"><span class="lg-trail"></span>Notified (planned) orbit, drawn once a satellite has flown it</div>
+      <div class="row"><span class="lg-box"></span>Planned slot with no satellite reported in it</div>
+      <div class="row"><span class="lg-sph" style="background:var(--good)"></span><span class="lg-sph" style="background:var(--warn)"></span><span class="lg-sph" style="background:var(--bad)"></span>Reported satellite: <span id="lgStatus"></span></div>
+      <div class="row"><span class="lg-tol"></span><span id="lgTolText"></span></div>
+      <div class="row" id="lgOuterRow"><span class="lg-out"></span>Outline: upper deployment limit (±100 km, ±3°)</div>
     </div>
     <div class="note" id="note" hidden></div>
     <div class="tip" id="tip" hidden></div>
   </main>
 
-  <!-- ======================= right: controls + focus ======================= -->
-  <aside class="panel right">
+  <!-- ======================= right: selection + controls ======================= -->
+  <aside class="right">
     <div class="sec" id="focusSec" hidden>
       <h2>Selected</h2>
       <div id="focusCard"></div>
     </div>
     <div class="sec">
-      <h2>Tolerance</h2>
+      <h2>Resolution 8 limit to draw</h2>
       <div class="radio" id="tierRadio">
-        <label><input type="radio" name="tier" value="r6" checked><span>Resolves 6 <small>±70 km apogee/perigee, ±2° (≤2,000 km); ±5%, ±3° above. Explanation required.</small></span></label>
-        <label><input type="radio" name="tier" value="r7"><span>Resolves 7 <small>±100 km, ±3° (≤2,000 km); ±10%, ±4° above. Explanation plus technical demonstration.</small></span></label>
-        <label><input type="radio" name="tier" value="r11"><span>Resolves 11 <small>±30 km; ±2° (≤2,000 km), ±3° above. Limit after the milestone check; may be exceeded for at most 60 consecutive days.</small></span></label>
-        <label><input type="radio" name="tier" value="custom"><span>Custom (test a tighter rule) <small>Same limit for every network.</small></span></label>
+        <label><input type="radio" name="tier" value="r6" checked><span><b>Deployment limit</b> (resolves 6)
+          <small>±70 km apogee and perigee, ±2° inclination (above 2,000 km: ±5%, ±3°). A difference inside this only needs an explanation.</small></span></label>
+        <label><input type="radio" name="tier" value="r7"><span><b>Upper deployment limit</b> (resolves 7)
+          <small>±100 km, ±3° (above 2,000 km: ±10%, ±4°). Between the two limits the operator must also show it causes no extra interference. Beyond this, the filing must be changed (resolves 9).</small></span></label>
+        <label><input type="radio" name="tier" value="r11"><span><b>Maintenance limit</b> (resolves 11)
+          <small>±30 km; ±2° (±3° above 2,000 km). Applies once the constellation is deployed; it may be exceeded for at most 60 consecutive days (resolves 12).</small></span></label>
+        <label><input type="radio" name="tier" value="custom"><span><b>Custom</b>
+          <small>Test a tighter or looser rule, the same for every network.</small></span></label>
       </div>
       <div id="customBox" hidden style="margin-top:8px">
         <div class="field"><span>Apogee / perigee altitude ±</span>
@@ -218,8 +217,25 @@ details ul { padding-left: 18px; margin: 6px 0; }
         <div class="field"><span>Inclination ±</span>
           <div class="slider"><input type="range" id="cDeg" min="0" max="5" step="0.05" value="1"><output id="cDegOut">1.00°</output></div></div>
       </div>
-      <label class="check"><input type="checkbox" id="outer" checked> Outline the resolves 7 limit too</label>
-      <div class="field" style="margin-top:8px"><span>How the inclination tolerance is drawn</span>
+      <label class="check" style="margin-top:8px"><input type="checkbox" id="outer" checked> Also outline the upper deployment limit</label>
+      <details style="margin-top:8px">
+        <summary>What are "resolves" and these limits?</summary>
+        <p>An ITU resolution's numbered decisions are called <i>resolves</i> 1, 2, 3… Resolution 8 (WRC-23) sets how far a deployed satellite's apogee, perigee and inclination may differ from what was notified, for non-geostationary systems under Res 35 with eccentricity below 0.5 and apogee below 15,000 km.</p>
+        <table class="zones">
+          <tr><th>Difference from the filing (≤ 2,000 km)</th><th>What the operator must do</th></tr>
+          <tr><td>Up to ±70 km, ±2° (resolves 6)</td><td>Explain the difference</td></tr>
+          <tr><td>±70–100 km or 2–3° (resolves 7)</td><td>Explain it and show it causes no extra interference</td></tr>
+          <tr><td>Beyond ±100 km or 3° (resolves 9)</td><td>Modify the notification</td></tr>
+          <tr><td>After deployment: ±30 km (resolves 11)</td><td>Stay inside; at most 60 consecutive days outside (resolves 12)</td></tr>
+        </table>
+        <p class="small muted">Above 2,000 km the altitude limits are ±5% / ±10% of the notified altitude and inclination ±3° / ±4°. Source: <a href="https://www.itu.int/en/ITU-R/seminars/wrs/Documents/2024/Space-Workshops/Resolution%208%20and%2035.pdf" target="_blank" rel="noopener">ITU WRS-24, Resolution 8 and 35</a>.</p>
+      </details>
+    </div>
+    <div class="sec">
+      <h2>Display</h2>
+      <div class="field"><span>Show the tolerance for</span>
+        <select id="env"><option value="focus">The selected satellite or shell only</option><option value="all">Every shown plane (up to 80)</option><option value="off">Nothing</option></select></div>
+      <div class="field"><span>How the inclination tolerance is drawn</span>
         <select id="mode">
           <option value="figure">Constant width ±Δi (as in the 2D figure)</option>
           <option value="geometric">Geometric: orbits tilted ±Δi about the node line</option>
@@ -228,37 +244,31 @@ details ul { padding-left: 18px; margin: 6px 0; }
       </div>
       <div class="field"><span>Exaggerate deviations (tolerances and reported offsets)</span>
         <div class="slider"><input type="range" id="exag" min="1" max="10" step="0.5" value="1"><output id="exagOut">×1</output></div></div>
-      <div class="field"><span>Show the tolerance for</span>
-        <select id="env"><option value="focus">Selected satellite or shell only</option><option value="all">Every shown plane (up to 80)</option><option value="off">Off</option></select></div>
-    </div>
-    <div class="sec">
-      <h2>Display</h2>
-      <label class="check"><input type="checkbox" id="showBoxes" checked> Planned satellite slots (boxes)</label>
+      <div class="field"><span>Marker size on screen</span>
+        <div class="slider"><input type="range" id="marker" min="2" max="16" step="1" value="6"><output id="markerOut">6 px</output></div>
+        <small class="muted">Inside a tolerance box a marker never grows past a quarter of the box, so the box stays to scale.</small></div>
+      <label class="check"><input type="checkbox" id="showBoxes" checked> Planned slots (boxes)</label>
       <label class="check"><input type="checkbox" id="showSph" checked> Reported satellites (spheres)</label>
       <label class="check"><input type="checkbox" id="ghost"> Faint full orbit before it is traced</label>
       <label class="check"><input type="checkbox" id="isoFocus" checked> Selecting a satellite shows it alone</label>
-      <div class="field" style="margin-top:6px"><span>Marker size on screen</span>
-        <div class="slider"><input type="range" id="marker" min="2" max="16" step="1" value="6"><output id="markerOut">6 px</output></div>
-        <small class="muted">Inside a tolerance box a marker is never taller than a quarter of the box, so the box stays to scale. A real satellite (metres across) would be far too small to see.</small></div>
     </div>
     <div class="sec">
-      <h2>Deviation space</h2>
+      <h2>How far reported orbits are from the filing</h2>
       <canvas class="devplot" id="devplot" aria-label="Reported minus notified orbit for each reported satellite"></canvas>
       <p class="small muted" id="devCaption" style="margin:6px 0 0"></p>
       <div class="stats" id="stats"></div>
     </div>
     <div class="sec">
-      <details>
+      <details class="big">
         <summary>How to read this</summary>
         <ul>
-          <li><b>Boxes</b> are planned satellite slots from the notified orbital planes (Res 35 PDF, A.4.b items). <b>Spheres</b> are the satellites the PDF reports as deployed, drawn on the orbit the PDF reports for them.</li>
-          <li><b>RAAN and phasing are not in the filings.</b> Planes with the same inclination and altitude (a shell) are spread evenly around the equator, and the satellites in a plane are spread evenly along it. The tolerance comparison does not depend on this.</li>
-          <li>Satellites move eastward for inclinations below 90° (counter-clockwise seen from above the <b>N</b> pole) and westward above 90°. Most constellations here are near-polar (86–89°), so they mostly look like they travel north–south. The Earth is drawn without its rotation.</li>
-          <li>Each reported satellite rides alongside one planned slot of its plane (same RAAN and argument of latitude), so the gap between sphere and box is only the difference in altitude and inclination.</li>
-          <li>The tolerance box is the cross-section perpendicular to the direction of travel: radially from (notified − tolerance) to (notified + tolerance) altitude, sideways by ±Δi. Apogee and perigee tolerances are applied separately, so elliptical orbits get a box that changes along the orbit.</li>
-          <li>For the 2,000 km threshold the inclination rule uses the stricter (≤2,000 km) value only if both notified apogee and perigee are at or below 2,000 km; each altitude tolerance uses its own notified altitude. The resolution's wording does not settle this case.</li>
-          <li>Resolution 8 applies only to orbital planes with eccentricity below 0.5 and apogee below 15,000 km; other planes are drawn without a tolerance box.</li>
-          <li>Reported values are the PDF snapshot at the milestone report, not live tracking. Observed orbits (e.g. from TLEs) can be added as more spheres later.</li>
+          <li><b>Notified orbit:</b> the orbital planes the administration filed with the ITU, as listed in the network's latest Res 35 milestone report. Each <b>box</b> is one planned satellite position in a plane.</li>
+          <li><b>Reported satellite (sphere):</b> a satellite the operator listed as deployed in that same report, drawn on the apogee, perigee and inclination given for it there. Its colour says which Res 8 limit it is inside. These are the operator's own numbers at report time, not tracked orbits; tracked (actual) orbits can be added later as a third kind of marker.</li>
+          <li><b>RAAN and phasing are not in the filings.</b> Planes with the same inclination and altitude (a shell) are spread evenly around the equator, and satellites evenly along each plane. The tolerance comparison does not depend on this.</li>
+          <li>Each reported satellite rides alongside one planned slot of its plane, so the gap between sphere and box is only the difference in altitude and inclination.</li>
+          <li>The tolerance box is the cross-section across the direction of travel: radially from notified − limit to notified + limit altitude, sideways by ±Δi. Apogee and perigee limits are applied separately, so elliptical orbits get a box that changes along the orbit.</li>
+          <li>For the 2,000 km threshold the stricter inclination limit is used only if both notified apogee and perigee are at or below 2,000 km; the resolution's wording does not settle this case.</li>
+          <li>Satellites move eastward for inclinations below 90° (counter-clockwise seen from above the <b>N</b> pole). Most constellations here are near-polar, so they look like they travel north–south. The Earth is drawn without its rotation.</li>
         </ul>
         <p class="small muted">Sources: <a href="https://www.itu.int/en/ITU-R/space/Pages/res8main.aspx" target="_blank" rel="noopener">ITU Resolution 8 (WRC-23)</a> · <a href="https://www.itu.int/net/ITU-R/space/res35/index.html" target="_blank" rel="noopener">Res 35 Space Network List</a> · data built <span id="builtDate"></span>.</p>
       </details>
@@ -313,7 +323,18 @@ const normalOf = (i, O, out) => out.set(Math.sin(O) * Math.sin(i), Math.cos(i), 
 function posAt(el, nu, out) { return unitAt(el.i, el.O, el.w + nu, out).multiplyScalar(radius(el.a, el.e, nu) * U); }
 
 // ------------------------------------------------------------------ Resolution 8 tolerances
-const TIER_NAME = { r6: 'resolves 6', r7: 'resolves 7', r11: 'resolves 11', custom: 'custom limit' };
+const TIER_NAME = { r6: 'deployment limit', r7: 'upper deployment limit', r11: 'maintenance limit', custom: 'custom limit' };
+const TIER_RES = { r6: 'resolves 6', r7: 'resolves 7', r11: 'resolves 11', custom: '' };
+// what each sphere colour means, for the chosen limit
+function statusText(st) {
+  const t = S.tier;
+  return {
+    good: t === 'r6' ? 'within the deployment limit (explanation only)' : `within the ${TIER_NAME[t]}`,
+    warn: t === 'r6' ? 'between the two deployment limits (needs a technical demonstration)' : `outside the ${TIER_NAME[t]}, within the upper deployment limit`,
+    bad: 'beyond the upper deployment limit (filing must be modified)',
+    na: 'not comparable (no notified plane, or Res 8 does not apply)',
+  }[st];
+}
 function altTol(tier, h) {
   switch (tier) {
     case 'r6': return h <= 2000 ? 70 : 0.05 * h;
@@ -431,10 +452,8 @@ const S = {
   showBoxes: true, showSph: true, ghost: false, isoFocus: true, markerPx: 6,
   playing: true, speed: 600, t: 0, focus: null, isolate: null, follow: false,
 };
-let theme = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-try { theme = localStorage.getItem('orbitTheme') || theme; } catch (e) {}
+S.net = -1;        // index of the network shown, -1 = all networks
 if (matchMedia('(prefers-reduced-motion: reduce)').matches) S.playing = false;
-document.documentElement.dataset.theme = theme;
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 
 // ------------------------------------------------------------------ three.js scene
@@ -450,15 +469,17 @@ camera.position.set(9, 10, 24);
 scene.add(camera);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true; controls.dampingFactor = 0.08; controls.minDistance = 0.02; controls.maxDistance = 400;
-scene.add(new THREE.AmbientLight(0xffffff, 0.75));
-const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(-4, 6, 10); camera.add(sun);
+scene.add(new THREE.AmbientLight(0xffffff, 1.9));
+const sun = new THREE.DirectionalLight(0xffffff, 0.9); sun.position.set(-4, 6, 10); camera.add(sun);
 
-// Earth: grey sphere, white graticule (10°), coastlines if they load
+// Earth: white globe, faint 10° graticule, grey country outlines (as on the ESPL SBI map), a light grey rim
 const earth = new THREE.Group(); scene.add(earth);
-const earthMat = new THREE.MeshStandardMaterial({ color: 0x7c7c7c, roughness: 1, metalness: 0 });
+const earthMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 });
 earth.add(new THREE.Mesh(new THREE.SphereGeometry(RE * U, 96, 64), earthMat));
-const gratMat = new THREE.LineBasicMaterial({ color: 0xd9d9d9, transparent: true, opacity: 0.32 });
-const coastMat = new THREE.LineBasicMaterial({ color: 0xf2f2f2, transparent: true, opacity: 0.85 });
+earth.add(new THREE.Mesh(new THREE.SphereGeometry(RE * U * 1.012, 96, 64), new THREE.MeshBasicMaterial({ color: 0xcfcfcf, side: THREE.BackSide })));
+const gratMat = new THREE.LineBasicMaterial({ color: 0xdedede, transparent: true, opacity: 0.8 });
+const coastMat = new THREE.LineBasicMaterial({ color: 0x8c8c8c });
+const borderMat = new THREE.LineBasicMaterial({ color: 0xb3b3b3 });
 {
   const pts = [], r = RE * U * 1.0015, v = (lat, lon) => {
     const la = lat * D2R, lo = lon * D2R; return [r * Math.cos(la) * Math.cos(lo), r * Math.sin(la), -r * Math.cos(la) * Math.sin(lo)];
@@ -471,25 +492,30 @@ const coastMat = new THREE.LineBasicMaterial({ color: 0xf2f2f2, transparent: tru
   earth.add(new THREE.Line(axis, gratMat));
   // "N" at the north pole, so the direction of travel can be read (prograde = counter-clockwise seen from here)
   const cv = document.createElement('canvas'); cv.width = cv.height = 64;
-  const g2 = cv.getContext('2d'); g2.fillStyle = '#e6e6e6'; g2.font = '700 44px Roboto, Arial, sans-serif';
+  const g2 = cv.getContext('2d'); g2.fillStyle = '#6b6b6b'; g2.font = '700 44px Roboto, Arial, sans-serif';
   g2.textAlign = 'center'; g2.textBaseline = 'middle'; g2.fillText('N', 32, 34);
   const nLabel = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true }));
   nLabel.position.set(0, RE * U * 1.36, 0); nLabel.scale.setScalar(0.9); earth.add(nLabel);
 }
-(async () => {   // coastlines (Natural Earth 1:110m via world-atlas); the globe works without them
+(async () => {   // coastlines + country borders (Natural Earth 1:50m via world-atlas); the globe works without them
   try {
     const topo = await import('https://cdn.jsdelivr.net/npm/topojson-client@3/+esm');
-    let land;
-    try { land = (await import('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json', { with: { type: 'json' } })).default; }
-    catch (e) { land = (await import('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json/+esm')).default; }
-    const mesh = topo.mesh(land, land.objects.land);
-    const pts = [], r = RE * U * 1.002;
-    for (const line of mesh.coordinates) for (let k = 0; k + 1 < line.length; k++) for (const [lon, lat] of [line[k], line[k + 1]]) {
-      const la = lat * D2R, lo = lon * D2R; pts.push(r * Math.cos(la) * Math.cos(lo), r * Math.sin(la), -r * Math.cos(la) * Math.sin(lo));
-    }
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-    earth.add(new THREE.LineSegments(g, coastMat));
-  } catch (e) { console.info('Coastlines not loaded; showing the graticule only.', e); }
+    const url = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json';
+    let world;
+    try { world = (await import(url, { with: { type: 'json' } })).default; }
+    catch (e) { world = await (await fetch(url)).json(); }
+    const lines = (mesh, mat, lift) => {
+      const pts = [], r = RE * U * lift;
+      for (const line of mesh.coordinates) for (let k = 0; k + 1 < line.length; k++) for (const [lon, lat] of [line[k], line[k + 1]]) {
+        const la = lat * D2R, lo = lon * D2R; pts.push(r * Math.cos(la) * Math.cos(lo), r * Math.sin(la), -r * Math.cos(la) * Math.sin(lo));
+      }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+      earth.add(new THREE.LineSegments(g, mat));
+    };
+    const c = world.objects.countries;
+    lines(topo.mesh(world, c, (a, b) => a === b), coastMat, 1.002);   // coastlines
+    lines(topo.mesh(world, c, (a, b) => a !== b), borderMat, 1.002);  // borders between countries
+  } catch (e) { console.info('Country outlines not loaded; showing the graticule only.', e); }
 })();
 
 // shader material that hides segments not yet flown (attribute aOn)
@@ -506,29 +532,25 @@ function revealMat(color, opacity, side = THREE.FrontSide) {
   });
 }
 const M = {
-  trail: new LineMaterial({ color: 0xffffff, linewidth: 2.2, vertexColors: true, transparent: true, opacity: 0.95, depthWrite: false }),
-  ghost: new THREE.LineBasicMaterial({ color: 0x9a9a9a, transparent: true, opacity: 0.3, depthWrite: false }),
-  envFill: revealMat(0xeaaa00, 0.15, THREE.DoubleSide),
-  envEdge: revealMat(0xeaaa00, 0.9),
-  headFill: new THREE.MeshBasicMaterial({ color: 0xeaaa00, transparent: true, opacity: 0.15, depthWrite: false, side: THREE.DoubleSide }),
-  headEdge: new THREE.LineBasicMaterial({ color: 0xeaaa00, transparent: true, opacity: 0.9, depthWrite: false }),
-  moveFill: new THREE.MeshBasicMaterial({ color: 0xeaaa00, transparent: true, opacity: 0.32, depthWrite: false, side: THREE.DoubleSide }),
-  moveLine: new THREE.LineBasicMaterial({ color: 0xffd45c }),
-  moveOuter: new THREE.LineBasicMaterial({ color: 0xeaaa00, transparent: true, opacity: 0.5 }),
-  box: new THREE.MeshStandardMaterial({ color: 0xeaaa00, roughness: 0.6, emissive: 0x3a2a00 }),
-  sph: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.45 }),
-  focusEdge: new THREE.LineBasicMaterial({ color: 0xffffff }),
-  focusHalo: new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.BackSide }),
+  trail: new LineMaterial({ color: 0xffffff, linewidth: 2, vertexColors: true, transparent: true, opacity: 0.95, depthWrite: false }),
+  ghost: new THREE.LineBasicMaterial({ color: 0xbdbdbd, transparent: true, opacity: 0.6, depthWrite: false }),
+  envFill: revealMat(0xeaaa00, 0.2, THREE.DoubleSide),
+  envEdge: revealMat(0xb88b13, 0.95),
+  headFill: new THREE.MeshBasicMaterial({ color: 0xeaaa00, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide }),
+  headEdge: new THREE.LineBasicMaterial({ color: 0xb88b13, transparent: true, opacity: 0.95, depthWrite: false }),
+  moveFill: new THREE.MeshBasicMaterial({ color: 0xeaaa00, transparent: true, opacity: 0.35, depthWrite: false, side: THREE.DoubleSide }),
+  moveLine: new THREE.LineBasicMaterial({ color: 0x7a5c06 }),
+  moveOuter: new THREE.LineBasicMaterial({ color: 0xb88b13, transparent: true, opacity: 0.6 }),
+  box: new THREE.MeshStandardMaterial({ color: 0xe0a100, roughness: 0.7 }),
+  sph: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 }),
+  focusEdge: new THREE.LineBasicMaterial({ color: 0x222222 }),
+  focusHalo: new THREE.MeshBasicMaterial({ color: 0x222222, side: THREE.BackSide }),
 };
 const boxGeo = new THREE.BoxGeometry(1, 1, 1), sphGeo = new THREE.SphereGeometry(0.5, 16, 12);
 const focusBox = new THREE.LineSegments(new THREE.EdgesGeometry(boxGeo), M.focusEdge); focusBox.visible = false; scene.add(focusBox);
 const focusHalo = new THREE.Mesh(sphGeo, M.focusHalo); focusHalo.visible = false; scene.add(focusHalo);
 
-scene.background = new THREE.Color(0x0b0f14);     // the 3D view keeps a dark backdrop in both themes
-function applyTheme() {
-  document.documentElement.dataset.theme = theme;
-  colorSpheres(); drawDev();
-}
+scene.background = new THREE.Color(0xffffff);
 
 // ------------------------------------------------------------------ scene contents (rebuilt on selection changes)
 let VIS = [], VSATS = [], BOXREF = [], ENV = [], MOVEREF = [];
@@ -536,7 +558,7 @@ let trailObj = null, ghostObj = null, envMesh = null, envEdges = null, boxMesh =
 let moveFill = null, moveLine = null, moveOuter = null, headObj = null, headFill = null, headEdge = null;
 let trailSrc = null, trailN = 0, HEADREF = [];
 let envOn = null, edgeOn = null, dirty = { trail: false, env: false };
-const LINE_ON = [1, 1, 1], LINE_REPORTED = [0.25, 0.25, 0.25];
+const LINE_ON = [0.074, 0.074, 0.074], LINE_REPORTED = [0.42, 0.42, 0.42];   // #4d4d4d and #aeaeae
 let boxPos = new Float32Array(0), sphPos = new Float32Array(0);
 let envNote = '', moveNote = '';
 const range = n => Array.from({ length: n }, (_, k) => k);
@@ -677,8 +699,7 @@ function rebuildEnv() {
   }
   const note = [envNote, moveNote].filter(Boolean).join(' ');
   $('#note').hidden = !note; $('#note').textContent = note;
-  $('#lgTolText').textContent = `Res 8 tolerance (${TIER_NAME[S.tier]}${S.tier === 'custom' ? `: ±${S.customKm} km, ±${S.customDeg.toFixed(2)}°` : ''})`;
-  $('#lgOuterRow').hidden = !(S.outer && S.tier !== 'r7');
+  updateLegend();
 }
 
 function markSeg(p, j) {
@@ -795,10 +816,10 @@ function update(dtSim) {
   if (S.showSph) {
     VSATS.forEach((sat, b) => {
       satPosition(sat, sat.plane.slotNu[sat.slot] + sat.dnu, _p);
-      const s = size(sat.plane, _p);
-      mtx.makeScale(s * 0.8, s * 0.8, s * 0.8).setPosition(_p);
+      const s = size(sat.plane, _p) * 1.7;
+      mtx.makeScale(s, s, s).setPosition(_p);
       sphMesh.setMatrixAt(b, mtx); sphPos[b * 3] = _p.x; sphPos[b * 3 + 1] = _p.y; sphPos[b * 3 + 2] = _p.z;
-      if (F && F.sat === sat) { focusHalo.position.copy(_p); focusHalo.scale.setScalar(s * 1.15); focusHalo.visible = true; focusPos = focusVec.copy(_p); }
+      if (F && F.sat === sat) { focusHalo.position.copy(_p); focusHalo.scale.setScalar(s * 1.3); focusHalo.visible = true; focusPos = focusVec.copy(_p); }
     });
     sphMesh.instanceMatrix.needsUpdate = true;
   }
@@ -913,11 +934,11 @@ function pick() {
 function tipHtml(h) {
   if (h.kind === 'sph') {
     const s = VSATS[h.k], p = s.plane;
-    const st = { good: 'within chosen limits', warn: `outside ${TIER_NAME[S.tier]}, within resolves 7`, bad: 'beyond resolves 7', na: p.planned ? 'Res 8 does not apply' : 'no notified plane in this PDF' }[s.status];
+    const st = statusText(s.status);
     return `<b>${esc(s.name)}</b> · reported satellite<br>${esc(s.net.name)} · plane ${p.id}<br>${fmt(s.per)}–${fmt(s.apo)} km, i ${fmt(s.inc, 2)}°<br><span class="${{ good: 'ok', warn: 'wn', bad: 'bd', na: 'muted' }[s.status]}">${st}</span>`;
   }
   const [p, k] = BOXREF[h.k];
-  return `<b>Planned slot ${k + 1} of ${p.nBox}</b> (not a real satellite)<br>${esc(p.net.name)} · plane ${p.id}<br>${altText(p)}, i ${fmt(p.inc, 2)}°`;
+  return `<b>Planned slot ${k + 1} of ${p.nBox}</b> (no satellite reported here)<br>${esc(p.net.name)} · plane ${p.id}<br>${altText(p)}, i ${fmt(p.inc, 2)}°`;
 }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const altText = p => p.apo === p.per ? `${fmt(p.apo)} km` : `${fmt(p.per)}–${fmt(p.apo)} km`;
@@ -942,7 +963,7 @@ function hoverStep() {
 
 // ------------------------------------------------------------------ focus
 function focusSat(s) {
-  s.net.shown = true;
+  ensureNet(s.net);
   S.focus = { type: 'sat', sat: s, plane: s.plane, slot: s.slot };
   S.isolate = S.isoFocus ? { type: 'slot', plane: s.plane, slot: s.slot, sat: s } : (S.isolate && S.isolate.type === 'slot' ? null : S.isolate);
   afterFocus();
@@ -954,16 +975,16 @@ function focusSlot(p, k) {
   afterFocus();
 }
 function focusShell(sh) {
-  sh.net.shown = true; sh.hidden = false;
+  ensureNet(sh.net); sh.hidden = false;
   S.focus = { type: 'shell', shell: sh };
   S.isolate = { type: 'shell', shell: sh };
-  rebuildAll(); renderList(); renderFocus(); drawDev(); fitView();
+  rebuildAll(); renderDetails(); renderFocus(); drawDev(); fitView();
 }
 function afterFocus() {
-  rebuildAll(); renderList(); renderFocus(); drawDev();
+  rebuildAll(); renderDetails(); renderFocus(); drawDev();
   update(0); flyToFocus();
 }
-function clearFocus() { S.focus = null; S.isolate = null; rebuildAll(); renderList(); renderFocus(); drawDev(); fitView(); }
+function clearFocus() { S.focus = null; S.isolate = null; rebuildAll(); renderDetails(); renderFocus(); drawDev(); fitView(); }
 
 function renderFocus() {
   const F = S.focus, box = $('#focusCard');
@@ -974,7 +995,7 @@ function renderFocus() {
     box.innerHTML = `<p class="focus-title">${esc(sh.net.name)} shell</p>
       <dl class="kv"><dt>Inclination</dt><dd>${fmt(sh.inc, 2)}°</dd><dt>Altitude</dt><dd>${altText(sh)}</dd>
       <dt>Planes</dt><dd>${sh.planes.length}</dd><dt>Notified / deployed</dt><dd>${fmt(sh.nNot)} / ${fmt(sh.nDep)}</dd>
-      <dt>Tolerance</dt><dd>${t ? `±${fmt(t.dA, 0)} km apogee, ±${fmt(t.dP, 0)} km perigee, ±${fmt(t.dI, 2)}°` : 'Res 8 does not apply'}</dd></dl>
+      <dt>Limit (${TIER_NAME[S.tier]})</dt><dd>${t ? `±${fmt(t.dA, 0)} km apogee, ±${fmt(t.dP, 0)} km perigee, ±${fmt(t.dI, 2)}°` : 'Res 8 does not apply'}</dd></dl>
       <div class="btnrow"><button class="btn" id="fShowNet">Show whole network</button><button class="btn" id="fClear">Clear</button></div>`;
   } else {
     const p = F.plane, s = F.sat, t = tolFor(p, S.tier);
@@ -991,15 +1012,15 @@ function renderFocus() {
         ${r('Perigee (km)', p.per, s.per, s.dP, t && t.dP, fl[1], 0)}
         ${r('Inclination (°)', p.inc, s.inc, s.dI, t && t.dI, fl[2], 2)}</table>`;
       if (t) {
-        const chk = tier => { const f = outFlags(s, tolFor(p, tier)); const n = f.filter(Boolean).length; return `<span class="${n ? 'bd' : 'ok'}">${n ? '✗' : '✓'} ${TIER_NAME[tier]}${n ? ` (${n} of 3 out)` : ''}</span>`; };
-        rows += `<p class="small" style="margin:8px 0 0">${['r6', 'r7', 'r11'].map(chk).join(' · ')}${S.tier === 'custom' ? ' · ' + chk('custom') : ''}</p>`;
+        const chk = tier => { const f = outFlags(s, tolFor(p, tier)); const n = f.filter(Boolean).length; return `<span class="${n ? 'bd' : 'ok'}">${n ? '✗' : '✓'} ${TIER_NAME[tier]}${TIER_RES[tier] ? ` (${TIER_RES[tier]})` : ''}${n ? `: ${n} of 3 outside` : ''}</span>`; };
+        rows += `<p class="small" style="margin:8px 0 0;display:grid;gap:2px">${['r6', 'r7', 'r11'].map(chk).join('')}${S.tier === 'custom' ? chk('custom') : ''}</p>`;
       }
     } else if (s) rows = `<p class="small muted">This PDF has no notified orbital planes, so there is nothing to compare with. Reported orbit: ${fmt(s.per)}–${fmt(s.apo)} km, i ${fmt(s.inc, 2)}°.</p>`;
     const title = s ? esc(s.name) : `Planned slot ${F.slot + 1} of ${p.nBox}`;
     box.innerHTML = `<p class="focus-title">${title}</p>
       <p class="small muted" style="margin:0 0 6px">${s ? 'Reported satellite' : 'Planned slot (no reported satellite here)'} · ${esc(p.net.name)} (${esc(p.net.adm)}) · plane ${p.id}${s && s.launch ? ` · launched ${s.launch}` : ''}</p>
       <dl class="kv">${p.planned ? `<dt>Notified plane</dt><dd>${altText(p)}, i ${fmt(p.inc, 2)}°, ω ${fmt(p.argp)}°</dd>
-      <dt>Tolerance (${TIER_NAME[S.tier]})</dt><dd>${t ? `±${fmt(t.dA)} km apogee, ±${fmt(t.dP)} km perigee, ±${fmt(t.dI, 2)}°` : 'Res 8 does not apply (apogee ≥ 15,000 km or e ≥ 0.5)'}</dd>`
+      <dt>Limit (${TIER_NAME[S.tier]})</dt><dd>${t ? `±${fmt(t.dA)} km apogee, ±${fmt(t.dP)} km perigee, ±${fmt(t.dI, 2)}°` : 'Res 8 does not apply (apogee ≥ 15,000 km or e ≥ 0.5)'}</dd>`
       : `<dt>Notified plane</dt><dd>Not in this PDF (old layout)</dd>`}
       <dt>Source</dt><dd>${p.net.pdf_url ? `<a href="${esc(p.net.pdf_url)}" target="_blank" rel="noopener">${esc(p.net.pdf_id)}</a>` : `${esc(p.net.pdf_id)} (no PDF link in the SNL)`} (${esc(p.net.milestone)}${p.net.brific_date ? `, BR IFIC ${esc(p.net.brific_date)}` : ''})</dd></dl>
       ${rows}
@@ -1014,56 +1035,100 @@ function renderFocus() {
   on('fClear', clearFocus);
 }
 
-// ------------------------------------------------------------------ network list
-function regimeChip(net) {
-  if (!net.hasPlanned) return '<span class="chip">no notified planes</span>';
-  return { leo: '<span class="chip gold">≤ 2,000 km rule</span>', mixed: '<span class="chip gold">above 2,000 km rule</span>', na: '<span class="chip">Res 8 n/a</span>' }[net.regime] || '';
+// ------------------------------------------------------------------ legend
+const LIMIT_WORDS = { r6: '±70 km, ±2°', r7: '±100 km, ±3°', r11: '±30 km, ±2°' };
+function updateLegend() {
+  const t = S.tier, lim = t === 'custom' ? `±${S.customKm} km, ±${S.customDeg.toFixed(2)}°` : LIMIT_WORDS[t];
+  $('#lgTolText').textContent = `Res 8 ${TIER_NAME[t]} around each planned slot (${lim} at or below 2,000 km)`;
+  $('#lgOuterRow').hidden = !(S.outer && t !== 'r7');
+  $('#lgStatus').textContent = t === 'r6' ? 'green inside the deployment limit, orange inside the upper limit, red beyond it'
+    : `green inside the ${TIER_NAME[t]}, orange outside it but inside the upper deployment limit, red beyond that`;
 }
-function renderList() {
-  const q = $('#netSearch').value.trim().toLowerCase();
-  const list = $('#netList'); list.innerHTML = '';
-  const F = S.focus;
-  for (const net of NETS) {
-    const nameHit = !q || net.name.toLowerCase().includes(q);
-    const satHits = nameHit ? net.satsL : net.satsL.filter(s => s.name.toLowerCase().includes(q));
-    if (!nameHit && !satHits.length) continue;
-    const el = document.createElement('div'); el.className = 'net' + (net.shown ? ' on' : '');
-    const open = Boolean(net.open || (!nameHit && satHits.length));
-    el.innerHTML = `<div class="netrow"><label><input type="checkbox" ${net.shown ? 'checked' : ''}>
-        <span class="netname">${esc(net.name)}<span class="adm">${esc(net.adm)}</span></span></label>
-        <button class="exp" aria-expanded="${open}" title="Shells and satellites">${open ? '▾' : '▸'}</button>
-        <div class="netmeta">${net.planesL.length} planes · ${fmt(net.total_notified)} notified · ${net.satsL.length} reported ${regimeChip(net)}</div></div>`;
-    el.querySelector('input').onchange = e => { net.shown = e.target.checked; if (S.isolate) S.isolate = null; if (S.focus && !net.shown && (S.focus.plane || S.focus.shell).net === net) S.focus = null; rebuildAll(); renderList(); renderFocus(); drawDev(); fitView(); };
-    el.querySelector('.exp').onclick = () => { net.open = !open; renderList(); };
-    if (open) {
-      const body = document.createElement('div'); body.className = 'netbody';
-      if (!net.hasPlanned) body.insertAdjacentHTML('beforeend', `<p class="small muted" style="margin:0">This PDF (${esc(net.pdf_id)}) uses the old layout with no orbital-plane table, so only the reported orbits are drawn (grey).</p>`);
-      for (const sh of net.shells) {
-        const row = document.createElement('div'); row.className = 'shell';
-        const per = sh.planes.every(p => p.nBox === sh.planes[0].nBox) ? `${sh.planes.length} × ${sh.planes[0].nBox}` : `${sh.planes.length} planes, ${fmt(sh.nNot)}`;
-        row.innerHTML = `<input type="checkbox" ${sh.hidden ? '' : 'checked'} title="Show this shell" ${sh.planned ? '' : 'disabled'}>
-          <span>${fmt(sh.inc, 1)}° · ${altText(sh)} · ${per}${sh.planned ? '' : ' (reported)'}${sh.inScope || !sh.planned ? '' : ' <span class="chip">Res 8 n/a</span>'}</span>
-          <button class="linkbtn">${S.isolate && S.isolate.type === 'shell' && S.isolate.shell === sh ? 'shown alone' : 'show alone'}</button>`;
-        row.querySelector('input').onchange = e => { sh.hidden = !e.target.checked; net.shown = true; S.isolate = null; rebuildAll(); renderList(); };
-        row.querySelector('button').onclick = () => focusShell(sh);
-        body.appendChild(row);
-      }
-      if (net.satsL.length) {
-        body.insertAdjacentHTML('beforeend', `<div class="small muted">Reported satellites (${satHits.length}${nameHit ? '' : ' matching'})</div>`);
-        const sl = document.createElement('div'); sl.className = 'satlist';
-        for (const s of satHits) {
-          const b = document.createElement('button');
-          b.className = 'satbtn' + (F && F.sat === s ? ' cur' : '');
-          b.innerHTML = `<span class="dot ${statusOf(s)}"></span>${esc(s.name)}<span class="muted" style="margin-left:auto">p${s.plane.id}</span>`;
-          b.onclick = () => focusSat(s);
-          sl.appendChild(b);
-        }
-        body.appendChild(sl);
-      }
-      el.appendChild(body);
+
+// ------------------------------------------------------------------ network picker + details panel
+const country = n => n.country || n.adm;
+function regimeChip(net) {
+  if (!net.hasPlanned) return '<span class="chip">no notified planes in this report</span>';
+  return { leo: '<span class="chip gold">Res 8 limits for ≤ 2,000 km</span>', mixed: '<span class="chip gold">Res 8 limits for above 2,000 km</span>', na: '<span class="chip">Res 8 does not apply</span>' }[net.regime] || '';
+}
+function fillSelect() {
+  const sel = $('#netSelect');
+  sel.innerHTML = `<option value="-1">All networks (${NETS.length})</option>` +
+    NETS.map((n, i) => `<option value="${i}">${esc(n.name)} · ${esc(country(n))}</option>`).join('');
+  sel.onchange = () => showNetwork(+sel.value);
+}
+// show one network (or all with -1); clears any selection unless keepFocus
+function showNetwork(i, keepFocus) {
+  S.net = i; $('#netSelect').value = String(i);
+  NETS.forEach((n, k) => { n.shown = i < 0 || k === i; for (const sh of n.shells) sh.hidden = false; });
+  if (!keepFocus) { S.focus = null; S.isolate = null; S.follow = false; $('#follow').classList.remove('on'); }
+  rebuildAll(); renderDetails(); renderFocus(); drawDev();
+  if (!keepFocus) fitView();
+}
+// make sure the network of a satellite or shell is the one shown
+function ensureNet(net) {
+  const i = NETS.indexOf(net);
+  if (S.net !== i) { S.net = i; $('#netSelect').value = String(i); NETS.forEach((n, k) => { n.shown = k === i; }); }
+}
+function satButton(s, withNet) {
+  const b = document.createElement('button'), st = statusOf(s);
+  b.className = 'satbtn' + (S.focus && S.focus.sat === s ? ' cur' : '');
+  b.title = statusText(st);
+  b.innerHTML = `<span class="dot ${st}"></span>${esc(s.name)}<span class="muted">${withNet ? esc(s.net.name) + ' · ' : ''}plane ${s.plane.id}</span>`;
+  b.onclick = () => focusSat(s);
+  return b;
+}
+function renderDetails() {
+  const box = $('#netDetails'), q = $('#satSearch').value.trim().toLowerCase();
+  box.innerHTML = '';
+  const add = html => box.insertAdjacentHTML('beforeend', html);
+  const list = (sats, withNet) => {
+    const l = document.createElement('div'); l.className = 'satlist';
+    for (const s of sats.slice(0, 400)) l.appendChild(satButton(s, withNet));
+    if (sats.length > 400) l.insertAdjacentHTML('beforeend', `<div class="small muted" style="padding:6px 10px">${fmt(sats.length - 400)} more: type part of a name to narrow the list.</div>`);
+    box.appendChild(l);
+  };
+  if (S.net < 0) {
+    if (q) {
+      const hits = NETS.flatMap(n => n.satsL).filter(s => s.name.toLowerCase().includes(q));
+      add(`<h3 style="margin-top:0">Satellites matching "${esc(q)}" (${fmt(hits.length)})</h3>`);
+      if (hits.length) list(hits, true); else add('<p class="small muted">No reported satellite has that name.</p>');
     }
-    list.appendChild(el);
+    add(`<h3 ${q ? '' : 'style="margin-top:0"'}>All networks</h3><p class="small muted" style="margin:0 0 8px">Pick a network to show it alone with its orbital shells and satellites.</p>`);
+    const t = document.createElement('table'); t.className = 'grid';
+    t.innerHTML = '<tr><th>Network</th><th>Notified</th><th>Reported deployed</th><th>Planes</th></tr>' +
+      NETS.map((n, i) => `<tr class="click" data-i="${i}"><td>${esc(n.name)} <span class="muted">${esc(n.adm)}</span></td><td>${fmt(n.total_notified)}</td><td>${fmt(n.total_deployed ?? n.satsL.length)}</td><td>${fmt(n.planesL.length)}</td></tr>`).join('');
+    t.querySelectorAll('tr.click').forEach(tr => { tr.onclick = () => showNetwork(+tr.dataset.i); });
+    box.appendChild(t);
+    return;
   }
+  const net = NETS[S.net];
+  const iso = S.isolate && S.isolate.type === 'shell' ? S.isolate.shell : null;
+  add(`<p class="netname">${esc(net.name)}</p>
+    <p class="small muted" style="margin:2px 0 0">${esc(country(net))} (${esc(net.adm)}) ${regimeChip(net)}</p>
+    <div class="kpis"><div class="kpi"><b>${fmt(net.total_notified)}</b><span>satellites notified</span></div>
+      <div class="kpi"><b>${fmt(net.total_deployed ?? net.satsL.length)}</b><span>reported deployed</span></div>
+      <div class="kpi"><b>${fmt(net.planesL.length)}</b><span>orbital planes</span></div></div>
+    <dl class="kv" style="margin-top:8px"><dt>Latest report</dt><dd>${net.pdf_url ? `<a href="${esc(net.pdf_url)}" target="_blank" rel="noopener">${esc(net.pdf_id)}</a>` : esc(net.pdf_id)} · ${esc(net.milestone)}${net.brific_date ? ` · BR IFIC ${esc(net.brific_date)}` : ''}</dd>
+    ${net.highest_milestone_met ? `<dt>Highest milestone met</dt><dd>${esc(net.highest_milestone_met)}</dd>` : ''}</dl>`);
+  // orbital shells
+  add(`<h3>Orbital shells</h3><p class="small muted" style="margin:0 0 8px">Planes with the same notified inclination and altitude. Pick a shell to show it alone with its Res 8 limit.${iso ? ' <button class="linkbtn" id="allShells">Show all shells</button>' : ''}</p>`);
+  if (!net.hasPlanned) add('<p class="small muted">This report uses the old layout with no orbital-plane table, so only the reported orbits are drawn (light grey) and nothing can be compared with the filing.</p>');
+  const t = document.createElement('table'); t.className = 'grid';
+  t.innerHTML = '<tr><th>Inclination</th><th>Altitude</th><th>Planes × slots</th><th>Reported</th></tr>' +
+    net.shells.map((sh, i) => {
+      const per = sh.planes.every(p => p.nBox === sh.planes[0].nBox) ? `${sh.planes.length} × ${sh.planes[0].nBox}` : `${sh.planes.length} planes, ${fmt(sh.nNot)}`;
+      const nrep = sh.planes.reduce((a, p) => a + p.sats.length, 0);
+      return `<tr class="click${iso === sh ? ' cur' : ''}" data-i="${i}" title="${sh.inScope || !sh.planned ? 'Show this shell alone' : 'Res 8 does not apply to this shell'}"><td>${fmt(sh.inc, 1)}°</td><td>${altText(sh)}</td><td>${sh.planned ? per : '(reported only)'}</td><td>${fmt(nrep)}</td></tr>`;
+    }).join('');
+  t.querySelectorAll('tr.click').forEach(tr => { tr.onclick = () => focusShell(net.shells[+tr.dataset.i]); });
+  box.appendChild(t);
+  const all = document.getElementById('allShells'); if (all) all.onclick = () => showNetwork(S.net);
+  // reported satellites
+  const sats = q ? net.satsL.filter(s => s.name.toLowerCase().includes(q)) : net.satsL;
+  add(`<h3>Reported satellites (${fmt(sats.length)}${q ? ' matching' : ''})</h3>
+    <p class="small muted" style="margin:0 0 8px">Satellites the operator listed as deployed in this report, on the orbit it reported for each. The dot says which Res 8 limit that orbit is inside. Pick one to fly to it.</p>`);
+  if (sats.length) list(sats, false); else add(`<p class="small muted">${q ? 'No reported satellite in this network has that name.' : 'This report names no deployed satellites.'}</p>`);
 }
 
 // ------------------------------------------------------------------ deviation space (2D, like the professor's zoom panel)
@@ -1124,7 +1189,7 @@ function drawDev() {
     for (const [y, up] of [[yA(s), true], [yP(s), false]]) { tri(X(s.dI), Y(y), up, 6); g.beginPath(); g.arc(X(s.dI), Y(y), 9, 0, TAU); g.stroke(); }
   }
   const nOther = shownNets.flatMap(n => n.satsL).filter(s => s.dA != null && s.plane.inScope && s.plane.leo !== leo).length;
-  $('#devCaption').innerHTML = `Reported minus notified orbit for each reported satellite in the shown networks (▲ apogee, ▼ perigee). Boxes: resolves 6 (solid), resolves 7 (dashed), resolves 11 (dotted)${lim.custom ? ', custom (navy)' : ''}. ${leo ? 'Planes at or below 2,000 km.' : 'Planes above 2,000 km.'}${nOther ? ` ${nOther} satellite(s) under the other altitude rule are not plotted.` : ''}`;
+  $('#devCaption').innerHTML = `Reported minus notified orbit for each reported satellite in the shown networks (▲ apogee, ▼ perigee). Boxes: deployment limit (solid), upper deployment limit (dashed), maintenance limit (dotted)${lim.custom ? ', custom (navy)' : ''}. ${leo ? 'Planes at or below 2,000 km.' : 'Planes above 2,000 km.'}${nOther ? ` ${nOther} satellite(s) under the other altitude rule are not plotted.` : ''}`;
   renderStats(shownNets);
 }
 function renderStats(nets) {
@@ -1139,19 +1204,19 @@ function renderStats(nets) {
   const leoS = assess.filter(s => s.plane.leo);
   const q = (arr, f) => { if (!arr.length) return null; const v = arr.map(f).sort((a, b) => a - b); return [v[Math.floor(0.95 * (v.length - 1))], v[v.length - 1]]; };
   const alt = q(leoS, s => Math.max(Math.abs(s.dA), Math.abs(s.dP))), inc = q(leoS, s => Math.abs(s.dI));
-  $('#stats').innerHTML = !nets.length ? '<span class="muted">Tick a network to see its numbers.</span>' : `
-    <span>Reported satellites in shown networks</span><span class="n">${fmt(all.length)}</span>
-    <span>Not assessable (no notified plane or Res 8 n/a)</span><span class="n">${fmt(all.length - assess.length)}</span>
-    <span class="ok">All 3 parameters within ${TIER_NAME[S.tier]}</span><span class="n">${fmt(full)}</span>
+  $('#stats').innerHTML = !nets.length ? '<span class="muted">Pick a network to see its numbers.</span>' : `
+    <span>Reported satellites shown</span><span class="n">${fmt(all.length)}</span>
+    <span>Not comparable (no notified plane, or Res 8 does not apply)</span><span class="n">${fmt(all.length - assess.length)}</span>
+    <span class="ok">Apogee, perigee and inclination all inside the ${TIER_NAME[S.tier]}</span><span class="n">${fmt(full)}</span>
     <span class="wn">1 or 2 parameters outside</span><span class="n">${fmt(part)}</span>
     <span class="bd">All 3 outside</span><span class="n">${fmt(none)}</span>
-    <span>Outside resolves 7 on any parameter</span><span class="n">${fmt(beyond7)}</span>
+    <span>Beyond the upper deployment limit on any of them</span><span class="n">${fmt(beyond7)}</span>
     ${alt ? `<span>Altitude deviation that covers 95% / 100% (≤2,000 km planes)</span><span class="n">${fmt(alt[0], 0)} / ${fmt(alt[1], 0)} km</span>
     <span>Inclination deviation that covers 95% / 100%</span><span class="n">${fmt(inc[0], 2)} / ${fmt(inc[1], 2)}°</span>` : ''}`;
 }
 
 // ------------------------------------------------------------------ controls
-function onTolChange() { $('#customBox').hidden = S.tier !== 'custom'; rebuildEnv(); colorSpheres(); renderList(); renderFocus(); drawDev(); }
+function onTolChange() { $('#customBox').hidden = S.tier !== 'custom'; rebuildEnv(); colorSpheres(); renderDetails(); renderFocus(); drawDev(); }
 document.querySelectorAll('input[name=tier]').forEach(r => r.onchange = () => { S.tier = r.value; onTolChange(); });
 $('#cKm').oninput = e => { S.customKm = +e.target.value; $('#cKmOut').textContent = `${S.customKm} km`; onTolChange(); };
 $('#cDeg').oninput = e => { S.customDeg = +e.target.value; $('#cDegOut').textContent = `${S.customDeg.toFixed(2)}°`; onTolChange(); };
@@ -1169,17 +1234,13 @@ $('#showSph').onchange = e => { S.showSph = e.target.checked; sphMesh.count = S.
 $('#ghost').onchange = e => { S.ghost = e.target.checked; ghostObj.visible = S.ghost; };
 $('#isoFocus').onchange = e => { S.isoFocus = e.target.checked; };
 $('#marker').oninput = e => { S.markerPx = +e.target.value; $('#markerOut').textContent = `${S.markerPx} px`; };
-$('#netSearch').oninput = renderList;
-function setSpeed() {
-  const v = +$('#speed').value; S.speed = Math.round(Math.pow(10, v / 25));
-}
-$('#speed').oninput = setSpeed;
+$('#satSearch').oninput = renderDetails;
+$('#speed').onchange = e => { S.speed = +e.target.value; };
 $('#play').onclick = () => { S.playing = !S.playing; $('#play').textContent = S.playing ? '❚❚' : '▶'; };
 addEventListener('keydown', e => { if (e.code === 'Space' && !/INPUT|SELECT|TEXTAREA|BUTTON/.test(document.activeElement.tagName)) { e.preventDefault(); $('#play').click(); } });
 $('#resetTrails').onclick = () => { for (const p of VIS) { p.revealed.fill(0); p.revealCount = 0; p.lastSeg.fill(-1); } trailN = 0; if (envOn) { envOn.fill(0); edgeOn.fill(0); } dirty.trail = dirty.env = true; };
 $('#follow').onclick = () => { if (!S.focus || !S.focus.plane) return; S.follow = !S.follow; $('#follow').classList.toggle('on', S.follow); lastFocusPos = null; if (S.follow) flyToFocus(); };
 $('#fit').onclick = fitView;
-$('#theme').onclick = () => { theme = theme === 'dark' ? 'light' : 'dark'; try { localStorage.setItem('orbitTheme', theme); } catch (e) {} applyTheme(); };
 controls.addEventListener('start', () => { fly.on = false; });
 $('#builtDate').textContent = DATA.meta.built + (DATA.meta.last_run ? ` from the pipeline run of ${DATA.meta.last_run}` : '');
 
@@ -1191,16 +1252,25 @@ function resize() {
 new ResizeObserver(() => { resize(); drawDev(); }).observe(stage);
 
 // ------------------------------------------------------------------ start
-const start = NETS.find(n => n.name === 'MCSAT LEO') || NETS.find(n => n.hasPlanned) || NETS[0];
-start.shown = true; start.open = true;
-setSpeed(); $('#play').textContent = S.playing ? '❚❚' : '▶'; rebuildAll(); renderList(); applyTheme(); resize(); fitView();
+fillSelect();
+const startIdx = Math.max(0, NETS.findIndex(n => n.name === 'MCSAT LEO'));
+S.speed = +$('#speed').value; $('#play').textContent = S.playing ? '❚❚' : '▶';
+showNetwork(startIdx); resize(); fitView();
+// elapsed simulated time, and how long one orbit of the selected (or fastest shown) plane takes on screen
+const dur = t => t < 3600 ? `${Math.floor(t / 60)} min` : t < 86400 * 2 ? `${Math.floor(t / 3600)} h ${String(Math.floor(t / 60) % 60).padStart(2, '0')} min` : `${(t / 86400).toFixed(1)} days`;
+function clockText() {
+  const F = S.focus, P = F && F.plane ? [F.plane] : F && F.shell ? F.shell.planes : VIS;
+  let T = Infinity; for (const p of P) T = Math.min(T, TAU / p.el.n);
+  if (!isFinite(T)) return `Elapsed ${dur(S.t)}`;
+  const r = T / S.speed, real = r < 1 ? 'under 1 s' : r < 120 ? `${Math.round(r)} s` : r < 7200 ? `${Math.round(r / 60)} min` : `${(r / 3600).toFixed(1)} h`;
+  return `Elapsed ${dur(S.t)} · one ${dur(T)} orbit takes ${real}`;
+}
 let last = performance.now();
 function loop(now) {
   const dt = Math.min(0.1, (now - last) / 1000); last = now;
   const dtSim = S.playing ? dt * S.speed : 0; S.t += dtSim;
   update(dtSim); cameraStep(); controls.update(); hoverStep();
-  const h = Math.floor(S.t / 3600), m = Math.floor(S.t / 60) % 60, s = Math.floor(S.t) % 60;
-  $('#clock').textContent = `×${fmt(S.speed)} · t+${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
+  $('#clock').textContent = clockText();
   renderer.render(scene, camera);
   requestAnimationFrame(loop);
 }
