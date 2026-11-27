@@ -18,8 +18,8 @@ FM2,O3B-A,39190.0,O3B FM2,2013-031C,O3B prefix,matched,2013-06-25,2013-06-25,,
 FM20,MCSAT-2 HEO,44112.0,O3B FM20,2019-020A,O3B prefix,matched,2019-04-04,2019-04-04,,
 FM3,O3B-A,40079.0,O3B FM3,2014-038A,O3B prefix,matched,2014-07-10,2014-07-10,,
 FM4,O3B-A,39189.0,O3B FM4,2013-031B,O3B prefix,matched,2013-06-25,2013-06-25,,
-FM5,O3B-A,35493.0,FM-5,2009-034A,same name,"matched, launch date differs",2013-06-25,2009-06-30,,Name matches but the CelesTrak launch date is more than 3 days from the PDF's; check by hand.
-FM6,O3B-A,39360.0,FM-6,2013-058A,same name,"matched, launch date differs",2014-07-10,2013-10-25,,Name matches but the CelesTrak launch date is more than 3 days from the PDF's; check by hand.
+FM5,O3B-A,35493.0,FM-5,2009-034A,same name,needs review,2013-06-25,2009-06-30,,Name matches but the CelesTrak launch date is more than 3 days from the PDF's. Not used until checked by hand.
+FM6,O3B-A,39360.0,FM-6,2013-058A,same name,needs review,2014-07-10,2013-10-25,,Name matches but the CelesTrak launch date is more than 3 days from the PDF's. Not used until checked by hand.
 FM7,O3B-A,40080.0,O3B FM7,2014-038B,O3B prefix,matched,2014-07-10,2014-07-10,,
 FM8,O3B-A,40082.0,O3B FM8,2014-038D,O3B prefix,matched,2014-07-10,2014-07-10,,
 FM9,O3B-B,40351.0,O3B FM9,2014-083D,O3B prefix,matched,2014-12-18,2014-12-18,,
