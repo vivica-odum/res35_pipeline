@@ -468,6 +468,7 @@ camera.position.set(9, 10, 24);
 scene.add(camera);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true; controls.dampingFactor = 0.08; controls.minDistance = 0.02; controls.maxDistance = 400;
+controls.zoomSpeed = 2;   // trackpad pinch / two-finger scroll and mouse wheel; three.js default is 1 (felt slow)
 scene.add(new THREE.AmbientLight(0xffffff, 1.9));
 const sun = new THREE.DirectionalLight(0xffffff, 0.9); sun.position.set(-4, 6, 10); camera.add(sun);
 
