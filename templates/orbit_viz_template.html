@@ -185,7 +185,9 @@ details ul { padding-left: 18px; margin: 6px 0; }
     <div class="legend" id="legend">
       <div class="row"><span class="lg-trail"></span>Notified (planned) orbit, drawn once a satellite has flown it</div>
       <div class="row"><span class="lg-box"></span>Planned slot with no satellite reported in it</div>
-      <div class="row"><span class="lg-sph" style="background:var(--good)"></span><span class="lg-sph" style="background:var(--warn)"></span><span class="lg-sph" style="background:var(--bad)"></span>Reported satellite: <span id="lgStatus"></span></div>
+      <div class="row"><span class="lg-sph" style="background:var(--good)"></span><span id="lgGood"></span></div>
+      <div class="row"><span class="lg-sph" style="background:var(--warn)"></span><span id="lgWarn"></span></div>
+      <div class="row"><span class="lg-sph" style="background:var(--bad)"></span><span id="lgBad"></span></div>
       <div class="row"><span class="lg-tol"></span><span id="lgTolText"></span></div>
       <div class="row" id="lgOuterRow"><span class="lg-out"></span>Outline: upper deployment limit (±100 km, ±3°)</div>
     </div>
@@ -1041,8 +1043,9 @@ function updateLegend() {
   const t = S.tier, lim = t === 'custom' ? `±${S.customKm} km, ±${S.customDeg.toFixed(2)}°` : LIMIT_WORDS[t];
   $('#lgTolText').textContent = `Res 8 ${TIER_NAME[t]} around each planned slot (${lim} at or below 2,000 km)`;
   $('#lgOuterRow').hidden = !(S.outer && t !== 'r7');
-  $('#lgStatus').textContent = t === 'r6' ? 'green inside the deployment limit, orange inside the upper limit, red beyond it'
-    : `green inside the ${TIER_NAME[t]}, orange outside it but inside the upper deployment limit, red beyond that`;
+  $('#lgGood').textContent = `Reported satellite inside the ${TIER_NAME[t]}`;
+  $('#lgWarn').textContent = t === 'r6' ? 'Reported satellite between the two deployment limits' : `Reported satellite outside it, inside the upper deployment limit`;
+  $('#lgBad').textContent = 'Reported satellite beyond the upper deployment limit';
 }
 
 // ------------------------------------------------------------------ network picker + details panel
