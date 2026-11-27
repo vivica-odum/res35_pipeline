@@ -869,15 +869,14 @@ function update(dtSim) {
 }
 
 // ------------------------------------------------------------------ camera: fit, follow, fly
-const fly = { on: false, t0: 0, dur: 1100, d0: new THREE.Vector3(), d1: new THREE.Vector3() };
-let lastFocusPos = null;
+const fly = { on: false, t0: 0, dur: 1100, d0: new THREE.Vector3(), d1: new THREE.Vector3(), loc: new THREE.Vector3() };
 function fitView() {
   S.follow = false; $('#follow').classList.remove('on'); fly.on = false;
   const maxApo = Math.max(1200, ...VIS.map(p => p.apo));
   const d = (RE + maxApo) * U * 3.1;
   controls.target.set(0, 0, 0);
   camera.position.set(0.38 * d, 0.42 * d, 0.82 * d);
-  lastFocusPos = null;
+  chase.has = false;
 }
 function flyToFocus() {
   if (!focusPos) return;
@@ -886,24 +885,39 @@ function flyToFocus() {
   const d = Math.max(0.25, tol * 2.4);
   frameBasis(p, p.slotNu[F.slot]);
   fly.d0.copy(camera.position).sub(controls.target.copy(focusPos));
-  fly.d1.copy(_t).multiplyScalar(-d).addScaledVector(_R, 0.45 * d).addScaledVector(_N, 0.55 * d);
+  fly.loc.set(-d, 0.45 * d, 0.55 * d);      // behind, above and beside the satellite, in its own frame
   fly.on = true; fly.t0 = performance.now();
-  S.follow = true; $('#follow').classList.add('on'); lastFocusPos = focusPos.clone();
+  S.follow = true; $('#follow').classList.add('on'); chase.has = false;
 }
+// Follow = a chase camera: its offset from the satellite is kept in the satellite's own frame
+// (along-track, radial, orbit normal), so the view turns with the orbit and never ends up on the far
+// side of the Earth. A drag or zoom while following is read back into that frame and kept.
+const chase = { has: false, T: new THREE.Vector3(), R: new THREE.Vector3(), N: new THREE.Vector3(), off: new THREE.Vector3() };
 function cameraStep() {
-  if (S.follow && focusPos) {
+  const F = S.focus;
+  if (S.follow && focusPos && F && F.plane) {
+    frameBasis(F.plane, F.plane.slotNu[F.slot]);              // sets _t (along-track), _R (radial), _N (normal)
     if (fly.on) {
+      fly.d1.copy(_t).multiplyScalar(fly.loc.x).addScaledVector(_R, fly.loc.y).addScaledVector(_N, fly.loc.z);
       const a = Math.min(1, (performance.now() - fly.t0) / fly.dur), e = a * a * (3 - 2 * a);
       const l0 = fly.d0.length(), l1 = fly.d1.length();
       const dir = _q.copy(fly.d0).multiplyScalar(1 / l0).lerp(_p.copy(fly.d1).multiplyScalar(1 / l1), e).normalize();
       controls.target.copy(focusPos);
       camera.position.copy(focusPos).addScaledVector(dir, Math.pow(l0, 1 - e) * Math.pow(l1, e));
       if (a >= 1) fly.on = false;
-    } else if (lastFocusPos) {
-      _q.copy(focusPos).sub(lastFocusPos); camera.position.add(_q); controls.target.add(_q);
+      chase.has = false;
+    } else {
+      const B = chase.has ? chase : { T: _t, R: _R, N: _N };   // last frame's axes hold the user's latest drag
+      _q.copy(camera.position).sub(controls.target);
+      chase.off.set(_q.dot(B.T), _q.dot(B.R), _q.dot(B.N));
+      controls.target.copy(focusPos);
+      camera.position.copy(focusPos).addScaledVector(_t, chase.off.x).addScaledVector(_R, chase.off.y).addScaledVector(_N, chase.off.z);
+      chase.has = true;
     }
-    lastFocusPos = focusPos.clone();
-  }
+    chase.T.copy(_t); chase.R.copy(_R); chase.N.copy(_N);
+    const rmin = RE * U * 1.03;                                  // never inside the Earth
+    if (camera.position.length() < rmin) camera.position.setLength(rmin);
+  } else chase.has = false;
   const dist = camera.position.distanceTo(controls.target);
   camera.near = Math.min(0.5, Math.max(1e-4, dist * 0.01)); camera.far = dist + 300;
   camera.updateProjectionMatrix();
@@ -1244,7 +1258,7 @@ $('#speed').onchange = e => { S.speed = +e.target.value; };
 $('#play').onclick = () => { S.playing = !S.playing; $('#play').textContent = S.playing ? '❚❚' : '▶'; };
 addEventListener('keydown', e => { if (e.code === 'Space' && !/INPUT|SELECT|TEXTAREA|BUTTON/.test(document.activeElement.tagName)) { e.preventDefault(); $('#play').click(); } });
 $('#resetTrails').onclick = () => { for (const p of VIS) { p.revealed.fill(0); p.revealCount = 0; p.lastSeg.fill(-1); } trailN = 0; if (envOn) { envOn.fill(0); edgeOn.fill(0); } dirty.trail = dirty.env = true; };
-$('#follow').onclick = () => { if (!S.focus || !S.focus.plane) return; S.follow = !S.follow; $('#follow').classList.toggle('on', S.follow); lastFocusPos = null; if (S.follow) flyToFocus(); };
+$('#follow').onclick = () => { if (!S.focus || !S.focus.plane) return; S.follow = !S.follow; $('#follow').classList.toggle('on', S.follow); chase.has = false; if (S.follow) flyToFocus(); };
 $('#fit').onclick = fitView;
 controls.addEventListener('start', () => { fly.on = false; });
 $('#builtDate').textContent = DATA.meta.built + (DATA.meta.last_run ? ` from the pipeline run of ${DATA.meta.last_run}` : '');
