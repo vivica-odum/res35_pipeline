@@ -328,6 +328,8 @@ function parseCsv(text) {
     document.body.dataset.glossary = "copy:" + (G.entries || []).length;   // e.g. blocked inside an artifact
   }
 })();
+// The 3D orbit page sits next to this page; #<network> opens it on that network (see orbit_viz_template.html).
+const orbitPage = name => "res35_orbits.html#" + String(name).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const glossaryLink = term => gl(`${G.page}?term=${encodeURIComponent(term)}`, "ESPL Glossary");
 
 // A definition, ESPL glossary first; `fb` = {definition, source_name, source_url} when the glossary has none yet.
@@ -834,7 +836,8 @@ function content(kind, p) {
     h += `<div class="chart" style="text-align:center">${globeSVG(v.shells, 210, true)}</div>`;
     h += mini(["Altitude", "Inclination", "Planes", "Satellites"], v.shells.map(s =>
       `<tr><td class="n">${alt(s)}</td><td class="n">${s.inc}°</td><td class="n">${fmtN(s.planes)}</td><td class="n">${fmtN(s.deployed ?? 0)} / ${fmtN(s.notified ?? 0)}</td></tr>`));
-    return h + `<p class="fn">Altitudes are above the Earth's surface; satellites are deployed / notified. The reports give each plane's altitude and inclination but not where it crosses the equator, so planes are spread evenly around the Earth here for illustration. A detailed orbit view will replace this sketch.</p>`;
+    return h + `<p class="fn">Altitudes are above the Earth's surface; satellites are deployed / notified. The reports give each plane's altitude and inclination but not where it crosses the equator, so planes are spread evenly around the Earth here for illustration.</p>` +
+      `<div class="src">${gl(orbitPage(n.name), `View ${esc(n.name)} in the 3D orbit visualization`)}</div>`;
   }
   return "";
 }

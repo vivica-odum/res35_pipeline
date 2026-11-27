@@ -1100,7 +1100,11 @@ function fillSelect() {
   const sel = $('#netSelect');
   sel.innerHTML = `<option value="-1">All networks (${NETS.length})</option>` +
     NETS.map((n, i) => `<option value="${i}">${esc(n.name)} · ${esc(country(n))}</option>`).join('');
-  sel.onchange = () => showNetwork(+sel.value);
+  sel.onchange = () => {
+    showNetwork(+sel.value);
+    // keep the address in step, so the link always opens the network on screen
+    try { history.replaceState(null, '', +sel.value >= 0 ? '#' + slug(NETS[+sel.value].name) : location.pathname + location.search); } catch (e) {}
+  };
 }
 // show one network (or all with -1); clears any selection unless keepFocus
 function showNetwork(i, keepFocus) {
@@ -1298,7 +1302,13 @@ new ResizeObserver(() => { resize(); drawDev(); }).observe(stage);
 
 // ------------------------------------------------------------------ start
 fillSelect();
-const startIdx = Math.max(0, NETS.findIndex(n => n.name === 'MCSAT LEO'));
+// A link can open the page on one network: res35_orbits.html#steam-1 (the network name in lower
+// case, with anything that isn't a letter or digit replaced by "-"). The dashboard links here this way.
+const slug = name => String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const fromHash = () => { const h = decodeURIComponent(location.hash.slice(1)).toLowerCase(); return h ? NETS.findIndex(n => slug(n.name) === h) : -2; };
+const hashIdx = fromHash();
+const startIdx = hashIdx >= 0 ? hashIdx : Math.max(0, NETS.findIndex(n => n.name === 'MCSAT LEO'));
+addEventListener('hashchange', () => { const i = fromHash(); if (i >= 0 && i !== S.net) showNetwork(i); });
 S.speed = +$('#speed').value; $('#play').textContent = S.playing ? '❚❚' : '▶';
 showNetwork(startIdx); resize(); fitView();
 // elapsed simulated time, and how long one orbit of the selected (or fastest shown) plane takes on screen
