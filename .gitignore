@@ -8,3 +8,6 @@ data/parsed/
 
 # Excel's lock file while a workbook is open
 output/~$*
+
+# CelesTrak downloads: re-fetched every day, only the matched history is kept
+data/celestrak/raw/
