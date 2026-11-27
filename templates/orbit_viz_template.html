@@ -72,8 +72,10 @@ table.grid tr.cur td { background: var(--gold-soft); }
 .satbtn:last-child { border-bottom: 0; }
 .satbtn:hover, .satbtn.cur { background: var(--gold-soft); }
 .satbtn .muted { margin-left: auto; font-size: 11.5px; }
-.dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--na); }
-.dot.good { background: var(--good); } .dot.warn { background: var(--warn); } .dot.bad { background: var(--bad); }
+.dot, .lg-sq { width: 10px; height: 10px; border-radius: 1px; flex: none; border: 2px solid var(--na); background: #f0f0f0; }
+.dot.good, .lg-sq.good { border-color: var(--good); background: #dcf2e9; }
+.dot.warn, .lg-sq.warn { border-color: var(--warn); background: #fdf1d4; }
+.dot.bad, .lg-sq.bad { border-color: var(--bad); background: #fbdfe5; }
 
 /* stage */
 .stage { position: relative; background: var(--stage); min-width: 0; }
@@ -91,7 +93,6 @@ input[type=range] { accent-color: var(--accent); }
 .legend { position: absolute; left: 12px; bottom: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; box-shadow: var(--shadow); font-size: 11.5px; display: grid; gap: 5px; max-width: 360px; }
 .legend .row { display: flex; align-items: center; gap: 8px; }
 .lg-box { width: 9px; height: 9px; background: var(--slot); border: 1px solid #6b6b6b; flex: none; }
-.lg-sph { width: 10px; height: 10px; border-radius: 50%; flex: none; }
 .lg-tol { width: 22px; height: 12px; background: rgba(234,170,0,.25); border: 1.5px solid var(--accent); flex: none; }
 .lg-out { width: 22px; height: 12px; border: 1px solid var(--accent); opacity: .6; flex: none; }
 .lg-trail { width: 22px; height: 0; border-top: 3px solid var(--orbit); flex: none; }
@@ -182,9 +183,9 @@ details ul { padding-left: 18px; margin: 6px 0; }
     <div class="legend" id="legend">
       <div class="row"><span class="lg-trail"></span>Notified (planned) orbit</div>
       <div class="row"><span class="lg-box"></span>Planned slot with no satellite reported in it</div>
-      <div class="row"><span class="lg-sph" style="background:var(--good)"></span><span id="lgGood"></span></div>
-      <div class="row"><span class="lg-sph" style="background:var(--warn)"></span><span id="lgWarn"></span></div>
-      <div class="row"><span class="lg-sph" style="background:var(--bad)"></span><span id="lgBad"></span></div>
+      <div class="row"><span class="lg-sq good"></span><span id="lgGood"></span></div>
+      <div class="row"><span class="lg-sq warn"></span><span id="lgWarn"></span></div>
+      <div class="row"><span class="lg-sq bad"></span><span id="lgBad"></span></div>
       <div class="row"><span class="lg-tol"></span><span id="lgTolText"></span></div>
       <div class="row" id="lgOuterRow"><span class="lg-out"></span>Outline: upper deployment limit (±100 km, ±3°)</div>
     </div>
@@ -247,7 +248,7 @@ details ul { padding-left: 18px; margin: 6px 0; }
         <div class="slider"><input type="range" id="marker" min="2" max="16" step="1" value="6"><output id="markerOut">6 px</output></div>
         <small class="muted">Inside a tolerance box a marker never grows past a quarter of the box, so the box stays to scale.</small></div>
       <label class="check"><input type="checkbox" id="showBoxes" checked> Planned slots (boxes)</label>
-      <label class="check"><input type="checkbox" id="showSph" checked> Reported satellites (spheres)</label>
+      <label class="check"><input type="checkbox" id="showSph" checked> Reported satellites (coloured squares)</label>
       <label class="check"><input type="checkbox" id="ghost"> Faint full orbit before it is traced</label>
       <label class="check"><input type="checkbox" id="isoFocus" checked> Selecting a satellite shows it alone</label>
     </div>
@@ -262,9 +263,9 @@ details ul { padding-left: 18px; margin: 6px 0; }
         <summary>How to read this</summary>
         <ul>
           <li><b>Notified orbit:</b> the orbital planes the administration filed with the ITU, as listed in the network's latest Res 35 milestone report. Each <b>box</b> is one planned satellite position in a plane.</li>
-          <li><b>Reported satellite (sphere):</b> a satellite the operator listed as deployed in that same report, drawn on the apogee, perigee and inclination given for it there. Its colour says which Res 8 limit it is inside. These are the operator's own numbers at report time, not tracked orbits; tracked (actual) orbits can be added later as a third kind of marker.</li>
+          <li><b>Reported satellite (square with coloured edges):</b> a satellite the operator listed as deployed in that same report, drawn on the apogee, perigee and inclination given for it there. Its colour says which Res 8 limit it is inside. These are the operator's own numbers at report time, not tracked orbits; tracked (actual) orbits can be added later as a third kind of marker.</li>
           <li><b>RAAN and phasing are not in the filings.</b> Planes with the same inclination and altitude (a shell) are spread evenly around the equator, and satellites evenly along each plane. The tolerance comparison does not depend on this.</li>
-          <li>Each reported satellite rides alongside one planned slot of its plane, so the gap between sphere and box is only the difference in altitude and inclination.</li>
+          <li>Each reported satellite rides alongside one planned slot of its plane, so the gap between the coloured square and the grey box is only the difference in altitude and inclination.</li>
           <li>The tolerance box is the cross-section across the direction of travel: radially from notified − limit to notified + limit altitude, sideways by ±Δi. Apogee and perigee limits are applied separately, so elliptical orbits get a box that changes along the orbit.</li>
           <li>For the 2,000 km threshold the stricter inclination limit is used only if both notified apogee and perigee are at or below 2,000 km; the resolution's wording does not settle this case.</li>
           <li>Satellites move eastward for inclinations below 90° (counter-clockwise seen from above the <b>N</b> pole). Most constellations here are near-polar, so they look like they travel north–south. The Earth is drawn without its rotation.</li>
@@ -324,7 +325,7 @@ function posAt(el, nu, out) { return unitAt(el.i, el.O, el.w + nu, out).multiply
 // ------------------------------------------------------------------ Resolution 8 tolerances
 const TIER_NAME = { r6: 'deployment limit', r7: 'upper deployment limit', r11: 'maintenance limit', custom: 'custom limit' };
 const TIER_RES = { r6: 'resolves 6', r7: 'resolves 7', r11: 'resolves 11', custom: '' };
-// what each sphere colour means, for the chosen limit
+// what each reported-satellite colour means, for the chosen limit
 function statusText(st) {
   const t = S.tier;
   return {
@@ -542,19 +543,18 @@ const M = {
   moveLine: new THREE.LineBasicMaterial({ color: 0x7a5c06 }),
   moveOuter: new THREE.LineBasicMaterial({ color: 0xb88b13, transparent: true, opacity: 0.6 }),
   box: new THREE.MeshStandardMaterial({ color: 0x9e9e9e, roughness: 0.7 }),
-  sph: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 }),
+  sph: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 }),   // pale fill; the status colour is on the edges
   focusEdge: new THREE.LineBasicMaterial({ color: 0x222222 }),
-  focusHalo: new THREE.MeshBasicMaterial({ color: 0x222222, side: THREE.BackSide }),
+  satEdge: new LineMaterial({ color: 0xffffff, linewidth: 2, vertexColors: true }),
 };
-const boxGeo = new THREE.BoxGeometry(1, 1, 1), sphGeo = new THREE.SphereGeometry(0.5, 16, 12);
+const boxGeo = new THREE.BoxGeometry(1, 1, 1);
 const focusBox = new THREE.LineSegments(new THREE.EdgesGeometry(boxGeo), M.focusEdge); focusBox.visible = false; scene.add(focusBox);
-const focusHalo = new THREE.Mesh(sphGeo, M.focusHalo); focusHalo.visible = false; scene.add(focusHalo);
 
 scene.background = new THREE.Color(0xffffff);
 
 // ------------------------------------------------------------------ scene contents (rebuilt on selection changes)
 let VIS = [], VSATS = [], BOXREF = [], ENV = [], MOVEREF = [];
-let trailObj = null, ghostObj = null, envMesh = null, envEdges = null, boxMesh = null, sphMesh = null;
+let trailObj = null, ghostObj = null, envMesh = null, envEdges = null, boxMesh = null, sphMesh = null, satEdges = null;
 let moveFill = null, moveLine = null, moveOuter = null, headObj = null, headFill = null, headEdge = null;
 let trailSrc = null, trailN = 0, HEADREF = [];
 let envOn = null, edgeOn = null, dirty = { trail: false, env: false };
@@ -574,7 +574,8 @@ function visiblePlanes() {
 function disposeObj(o) { if (!o) return; scene.remove(o); o.geometry.dispose(); }
 
 function rebuildAll() {
-  for (const o of [trailObj, ghostObj, boxMesh, sphMesh, headObj]) disposeObj(o);
+  for (const o of [trailObj, ghostObj, boxMesh, sphMesh, headObj, satEdges]) disposeObj(o);
+  S.t = 0;                             // a new view starts its clock (and its traced orbits) from zero
   for (const p of VIS) { p.trailBase = -1; p.envBase = -1; }
   VIS = visiblePlanes();
   const iso = S.isolate && S.isolate.type === 'slot' ? S.isolate : null;
@@ -617,9 +618,13 @@ function rebuildAll() {
   boxMesh = new THREE.InstancedMesh(boxGeo, M.box, Math.max(1, BOXREF.length));
   boxMesh.count = S.showBoxes ? BOXREF.length : 0; boxMesh.frustumCulled = false;
   boxMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(boxMesh);
-  sphMesh = new THREE.InstancedMesh(sphGeo, M.sph, Math.max(1, VSATS.length));
+  sphMesh = new THREE.InstancedMesh(boxGeo, M.sph, Math.max(1, VSATS.length));
   sphMesh.count = S.showSph ? VSATS.length : 0; sphMesh.frustumCulled = false;
   sphMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(sphMesh);
+  // the coloured edges of each reported-satellite square: 12 thick line segments per satellite
+  const eg = new LineSegmentsGeometry(), ne = Math.max(1, VSATS.length * 12) * 6;
+  eg.setPositions(new Float32Array(ne)); eg.setColors(new Float32Array(ne)); eg.instanceCount = VSATS.length * 12;
+  satEdges = new LineSegments2(eg, M.satEdge); satEdges.frustumCulled = false; satEdges.visible = S.showSph; scene.add(satEdges);
   boxPos = new Float32Array(BOXREF.length * 3); sphPos = new Float32Array(VSATS.length * 3);
   colorSpheres();
   rebuildEnv();
@@ -743,14 +748,21 @@ const STATUS_HEX = () => ({ good: css('--good'), warn: css('--warn'), bad: css('
 function colorSpheres() {
   if (!sphMesh) return;
   const hex = STATUS_HEX(), c = new THREE.Color();
-  VSATS.forEach((s, k) => { s.status = statusOf(s); sphMesh.setColorAt(k, c.set(hex[s.status])); });
+  const white = new THREE.Color(0xffffff), ec = satEdges ? satEdges.geometry.attributes.instanceColorStart.data.array : null;
+  VSATS.forEach((s, k) => {
+    s.status = statusOf(s); c.set(hex[s.status]);
+    if (ec) for (let e = 0; e < 12; e++) ec.set([c.r, c.g, c.b, c.r, c.g, c.b], (k * 12 + e) * 6);
+    sphMesh.setColorAt(k, c.lerp(white, 0.75));
+  });
   if (sphMesh.instanceColor) sphMesh.instanceColor.needsUpdate = true;
+  if (ec) satEdges.geometry.attributes.instanceColorStart.data.needsUpdate = true;
 }
 
 // ------------------------------------------------------------------ per-frame update
 const mtx = new THREE.Matrix4(), _p = new THREE.Vector3(), _q = new THREE.Vector3(), _t = new THREE.Vector3(),
       _R = new THREE.Vector3(), _N = new THREE.Vector3(), _negN = new THREE.Vector3(), _sc = new THREE.Vector3(),
-      _shift = new THREE.Vector3(), CC = [0, 1, 2, 3].map(() => new THREE.Vector3());
+      _shift = new THREE.Vector3(), CC = [0, 1, 2, 3].map(() => new THREE.Vector3()),
+      CUBE = Array.from({ length: 8 }, () => new THREE.Vector3());
 let focusPos = null;
 const focusVec = new THREE.Vector3();
 
@@ -812,20 +824,34 @@ function update(dtSim) {
     const p = F.plane, nu = p.slotNu[F.slot]; frameBasis(p, nu); posAt(p.el, nu, _p); _negN.copy(_N).negate();
     const s = size(p, _p);
     mtx.makeBasis(_t, _R, _negN).scale(_sc.set(s * 1.3, s * 1.3, s * 1.3)).setPosition(_p);
-    focusBox.matrixAutoUpdate = false; focusBox.matrix.copy(mtx); focusBox.visible = p.nBox > 0 && S.showBoxes;
+    focusBox.matrixAutoUpdate = false; focusBox.matrix.copy(mtx); focusBox.visible = p.nBox > 0 && S.showBoxes && !(F.sat && S.showSph);
     if (!F.sat) focusPos = focusVec.copy(_p);
   } else focusBox.visible = false;
-  // spheres
-  focusHalo.visible = false;
+  // reported satellites: squares (cubes) with coloured edges, a little larger than the grey slot box
   if (S.showSph) {
+    const ep = satEdges.geometry.attributes.instanceStart.data.array;
     VSATS.forEach((sat, b) => {
-      satPosition(sat, sat.plane.slotNu[sat.slot] + sat.dnu, _p);
-      const s = size(sat.plane, _p) * 1.7;
-      mtx.makeScale(s, s, s).setPosition(_p);
+      const nu = sat.plane.slotNu[sat.slot] + sat.dnu;
+      satPosition(sat, nu, _p); frameBasis(sat.plane, nu); _negN.copy(_N).negate();
+      const s = size(sat.plane, _p) * 1.7, hs = s / 2;
+      mtx.makeBasis(_t, _R, _negN).scale(_sc.set(s, s, s)).setPosition(_p);
       sphMesh.setMatrixAt(b, mtx); sphPos[b * 3] = _p.x; sphPos[b * 3 + 1] = _p.y; sphPos[b * 3 + 2] = _p.z;
-      if (F && F.sat === sat) { focusHalo.position.copy(_p); focusHalo.scale.setScalar(s * 1.3); focusHalo.visible = true; focusPos = focusVec.copy(_p); }
+      for (let i = 0; i < 8; i++) {                     // the 8 corners
+        const a = (i & 4 ? hs : -hs), r = (i & 2 ? hs : -hs), n = (i & 1 ? hs : -hs);
+        CUBE[i].copy(_p).addScaledVector(_t, a).addScaledVector(_R, r).addScaledVector(_N, n);
+      }
+      let e = b * 12;
+      for (let i = 0; i < 8; i++) for (const bit of [1, 2, 4]) if (!(i & bit)) {   // 12 edges
+        const u = CUBE[i], v = CUBE[i | bit];
+        ep.set([u.x, u.y, u.z, v.x, v.y, v.z], e * 6); e++;
+      }
+      if (F && F.sat === sat) {
+        mtx.makeBasis(_t, _R, _negN).scale(_sc.set(s * 1.35, s * 1.35, s * 1.35)).setPosition(_p);
+        focusBox.matrixAutoUpdate = false; focusBox.matrix.copy(mtx); focusBox.visible = true; focusPos = focusVec.copy(_p);
+      }
     });
     sphMesh.instanceMatrix.needsUpdate = true;
+    satEdges.geometry.attributes.instanceStart.data.needsUpdate = true;
   }
   if (F && F.sat && !focusPos && F.plane.trailBase >= 0) focusPos = focusVec.copy(satPosition(F.sat, F.plane.slotNu[F.slot] + F.sat.dnu, _p));
   // moving tolerance boxes, on the leading face of each planned box
@@ -1249,7 +1275,7 @@ $('#modeHelp').textContent = MODE_HELP.figure;
 $('#exag').oninput = e => { S.X = +e.target.value; $('#exagOut').textContent = `×${S.X}`; rebuildEnv(); };
 $('#env').onchange = e => { S.env = e.target.value; rebuildEnv(); };
 $('#showBoxes').onchange = e => { S.showBoxes = e.target.checked; boxMesh.count = S.showBoxes ? BOXREF.length : 0; };
-$('#showSph').onchange = e => { S.showSph = e.target.checked; sphMesh.count = S.showSph ? VSATS.length : 0; };
+$('#showSph').onchange = e => { S.showSph = e.target.checked; sphMesh.count = S.showSph ? VSATS.length : 0; satEdges.visible = S.showSph; };
 $('#ghost').onchange = e => { S.ghost = e.target.checked; ghostObj.visible = S.ghost; };
 $('#isoFocus').onchange = e => { S.isoFocus = e.target.checked; };
 $('#marker').oninput = e => { S.markerPx = +e.target.value; $('#markerOut').textContent = `${S.markerPx} px`; };
@@ -1257,7 +1283,7 @@ $('#satSearch').oninput = renderDetails;
 $('#speed').onchange = e => { S.speed = +e.target.value; };
 $('#play').onclick = () => { S.playing = !S.playing; $('#play').textContent = S.playing ? '❚❚' : '▶'; };
 addEventListener('keydown', e => { if (e.code === 'Space' && !/INPUT|SELECT|TEXTAREA|BUTTON/.test(document.activeElement.tagName)) { e.preventDefault(); $('#play').click(); } });
-$('#resetTrails').onclick = () => { for (const p of VIS) { p.revealed.fill(0); p.revealCount = 0; p.lastSeg.fill(-1); } trailN = 0; if (envOn) { envOn.fill(0); edgeOn.fill(0); } dirty.trail = dirty.env = true; };
+$('#resetTrails').onclick = () => { S.t = 0; for (const p of VIS) { p.revealed.fill(0); p.revealCount = 0; p.lastSeg.fill(-1); } trailN = 0; if (envOn) { envOn.fill(0); edgeOn.fill(0); } dirty.trail = dirty.env = true; };
 $('#follow').onclick = () => { if (!S.focus || !S.focus.plane) return; S.follow = !S.follow; $('#follow').classList.toggle('on', S.follow); chase.has = false; if (S.follow) flyToFocus(); };
 $('#fit').onclick = fitView;
 controls.addEventListener('start', () => { fly.on = false; });
@@ -1266,7 +1292,7 @@ $('#builtDate').textContent = DATA.meta.built + (DATA.meta.last_run ? ` from the
 function resize() {
   const w = stage.clientWidth, h = stage.clientHeight;
   renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
-  M.trail.resolution.set(w, h);
+  M.trail.resolution.set(w, h); M.satEdge.resolution.set(w, h);
 }
 new ResizeObserver(() => { resize(); drawDev(); }).observe(stage);
 
