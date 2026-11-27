@@ -17,6 +17,9 @@ saves a dated snapshot and logs what changed since the last run.
 | `output/res35_frequency_addon.xlsx` | Optional frequency work: beam groups (transmit / receive) and satellite-to-band links |
 | `output/res35_dashboard.html` | Interactive dashboard of the same tables, published at https://vivica-odum.github.io/res35_pipeline/output/res35_dashboard.html. Hover a column name or milestone status for its definition from the ESPL glossary; hover a network for its reports and ITU filings, or a chart for the network's frequency bands and orbits |
 | `output/res35_orbits.html` | 3D view of each network's notified (planned) orbits from its latest milestone PDF, with the Resolution 8 orbital tolerances drawn around each planned satellite and the reported satellites shown against them. Published at https://vivica-odum.github.io/res35_pipeline/output/res35_orbits.html |
+| `output/res35_tracked_orbits.xlsx` | **Tracked (actual) orbits** from CelesTrak, refreshed every day: for each satellite in the latest PDFs, its NORAD number, today's tracked apogee, perigee and inclination, the notified and reported values, the differences, and which Resolution 8 limit the tracked orbit is inside. Matches sheet lists how each name was matched (or why not) |
+| `data/celestrak/history/` | One file per day (`YYYY/YYYY-MM-DD.csv.gz`) with that day's CelesTrak orbit of every matched satellite, so deviations can be studied over time |
+| `data/celestrak/satellite_matches.csv` | Satellite name in the PDFs → NORAD catalog number, with the matching rule and launch-date check |
 | `data/as_received.csv` | Submissions on the ITU's "As Received" list (sent to the ITU but not yet published), used to link "As Received" milestones to their files |
 | `data/espl_glossary.csv` | Copy of the ESPL glossary, used when the live glossary can't be read |
 | `docs/espl_glossary_drafts.csv` | Every word the dashboard defines, with a draft definition, ready to paste into the ESPL glossary sheet |
@@ -50,6 +53,7 @@ saves a dated snapshot and logs what changed since the last run.
    python fetch_espl_glossary.py    # optional: refresh the copy of the ESPL glossary
    python build_dashboard.py        # rebuild output/res35_dashboard.html
    python build_orbit_viz.py        # rebuild output/res35_orbits.html (3D orbits + Res 8 tolerances)
+   python fetch_celestrak.py        # today's tracked orbits from CelesTrak -> output/res35_tracked_orbits.xlsx
    ```
    The first run downloads every published PDF, about one per second, and parses them.
    Expect 10 to 20 minutes. Later runs only handle what is new.
@@ -81,6 +85,11 @@ and the in-between Wednesday catches SNL changes such as new "As Received" statu
 - After the pipeline, it refreshes the Space Explorer and As Received links and the copy of the
   ESPL glossary, then rebuilds the dashboard and the 3D orbit page. If one of those sites can't be
   reached, that step shows a warning and last week's data is kept.
+- A second workflow, `.github/workflows/daily_celestrak.yml` ("Daily CelesTrak orbits"), runs **every
+  day at 12:30 UTC**: it downloads CelesTrak's current orbits (no login needed), matches them to the
+  satellites in the PDFs and saves the day's orbits in `data/celestrak/history/`. Following CelesTrak's
+  usage policy it stops on the first error instead of retrying, so a failed run means a person should
+  look at the log first. The two workflows queue behind each other, never save at the same time.
 - If the "Save results" step fails with a permission error: Settings > Actions > General >
   Workflow permissions > "Read and write permissions".
 
@@ -96,6 +105,8 @@ and the in-between Wednesday catches SNL changes such as new "As Received" statu
 | `fetch_espl_glossary.py` | Saves a copy of the ESPL glossary. Its `PROJECT` setting is the glossary Project name whose terms the dashboard uses |
 | `build_dashboard.py` | Builds `output/res35_dashboard.html` from the main workbook, the column definitions and the glossary. The page's layout and styling are in `templates/` |
 | `build_orbit_viz.py` | Builds `output/res35_orbits.html` from the main workbook (planes and Satellites view of each network's latest PDF). The 3D page itself is `templates/orbit_viz_template.html`; it loads three.js from the internet when opened |
+| `fetch_celestrak.py` | Downloads CelesTrak's GP data for active satellites, the operator-based SupGP data (Starlink, OneWeb, Kuiper, Iridium, SES) and the SATCAT catalogue, then runs `celestrak_match.py`. Stops on any non-200 answer, as CelesTrak asks |
+| `celestrak_match.py` | Matches PDF satellite names to NORAD numbers (SL#### = ONEWEB-####, IR-### = IRIDIUM ###, FM# = O3B FM#, others by name; checked against the PDF launch date), saves the day's history file and writes `output/res35_tracked_orbits.xlsx` |
 | `docs/ITU_glossary_Res35.xlsx` | Earlier ITU glossary for this project (now replaced by the ESPL glossary) |
 | `explore_results.ipynb` | Runs the pipeline from Jupyter and opens the results |
 | `docs/column_definitions.csv` | What every column means, with its ITU label, data item code and source. Shown in the workbook as the Column definitions sheet. Edit this file to change a definition |
