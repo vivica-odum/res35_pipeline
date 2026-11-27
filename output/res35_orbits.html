@@ -15,7 +15,7 @@
   --bg: #ffffff; --surface: #ffffff; --sunk: #f6f6f6; --stage: #ffffff;
   --ink: #262626; --muted: #6b6b6b; --line: #e1e1e1;
   --accent: #b88b13; --yellow: #eaaa00; --head: #a4925a; --link: #74652f;
-  --gold-soft: #fbf3d6; --hover: #fffaea; --navy: #003057; --orbit: #4d4d4d;
+  --gold-soft: #fbf3d6; --hover: #fffaea; --navy: #003057; --orbit: #d5d5d5;
   --good: #3fb68b; --warn: #f2b632; --bad: #e5566f; --na: #a8a8a8; --slot: #9e9e9e;
   --shadow: 0 10px 30px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05);
   --f-display: "Roboto Condensed", "Arial Narrow", Arial, sans-serif;
@@ -94,7 +94,7 @@ input[type=range] { accent-color: var(--accent); }
 .lg-sph { width: 10px; height: 10px; border-radius: 50%; flex: none; }
 .lg-tol { width: 22px; height: 12px; background: rgba(234,170,0,.25); border: 1.5px solid var(--accent); flex: none; }
 .lg-out { width: 22px; height: 12px; border: 1px solid var(--accent); opacity: .6; flex: none; }
-.lg-trail { width: 22px; height: 0; border-top: 2.5px solid var(--orbit); flex: none; }
+.lg-trail { width: 22px; height: 0; border-top: 3px solid var(--orbit); flex: none; }
 .note { position: absolute; right: 12px; bottom: 12px; max-width: 360px; background: var(--surface); border: 1px solid var(--accent); border-radius: 10px; padding: 8px 10px; font-size: 12px; box-shadow: var(--shadow); }
 .tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; font-size: 12px; box-shadow: var(--shadow); max-width: 290px; z-index: 5; }
 .tip b { font-weight: 500; }
@@ -557,9 +557,9 @@ let trailObj = null, ghostObj = null, envMesh = null, envEdges = null, boxMesh =
 let moveFill = null, moveLine = null, moveOuter = null, headObj = null, headFill = null, headEdge = null;
 let trailSrc = null, trailN = 0, HEADREF = [];
 let envOn = null, edgeOn = null, dirty = { trail: false, env: false };
-const LINE_ON = [0.074, 0.074, 0.074], LINE_REPORTED = [0.42, 0.42, 0.42];   // #4d4d4d and #aeaeae
+const LINE_ON = [0.665, 0.665, 0.665], LINE_REPORTED = [0.30, 0.30, 0.30];   // #d5d5d5 (as the SBI model) and #959595 (linear values)
 let boxPos = new Float32Array(0), sphPos = new Float32Array(0);
-let envNote = '', moveNote = '';
+let envNote = '', moveNote = '', denseNote = '';
 const range = n => Array.from({ length: n }, (_, k) => k);
 
 function visiblePlanes() {
@@ -598,6 +598,10 @@ function rebuildAll() {
   tg.setPositions(new Float32Array(trailSrc.length)); tg.setColors(new Float32Array(trailSrc.length));
   tg.instanceCount = 0; trailN = 0;
   trailObj = new LineSegments2(tg, M.trail); trailObj.frustumCulled = false; scene.add(trailObj);
+  // hundreds of planes (e.g. USASAT-NGSO-8B files 1,294 planes of one satellite each) would cover the globe: draw them fainter
+  M.trail.opacity = VIS.length > 60 ? Math.max(0.25, 60 / VIS.length) : 0.95;
+  M.trail.linewidth = VIS.length > 200 ? 1.2 : 2.2;
+  denseNote = VIS.length > 200 ? `${fmt(VIS.length)} orbital planes are shown, so their lines are drawn fainter. Pick a shell or a satellite to see one plane clearly.` : '';
   const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.BufferAttribute(trailSrc, 3));
   ghostObj = new THREE.LineSegments(gg, M.ghost); ghostObj.frustumCulled = false; ghostObj.visible = S.ghost; scene.add(ghostObj);
   // the growing tip of each trail, from the last whole segment up to the satellite (redrawn every frame)
@@ -696,7 +700,7 @@ function rebuildEnv() {
     headEdge = new THREE.LineSegments(mk(n * HSUB * 8), M.headEdge);
     for (const o of [headFill, headEdge]) { o.frustumCulled = false; scene.add(o); }
   }
-  const note = [envNote, moveNote].filter(Boolean).join(' ');
+  const note = [denseNote, envNote, moveNote].filter(Boolean).join(' ');
   $('#note').hidden = !note; $('#note').textContent = note;
   updateLegend();
 }
